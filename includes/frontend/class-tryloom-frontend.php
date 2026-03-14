@@ -72,6 +72,21 @@ class Tryloom_Frontend
 			add_filter('ajax_query_attachments_args', array($this, 'exclude_try_on_images_from_media_library'));
 			add_action('pre_get_posts', array($this, 'exclude_try_on_images_from_media_library_query'));
 		}
+
+		// Add theme body class for dark mode CSS cascade
+		add_filter('body_class', array($this, 'add_theme_body_class'));
+	}
+
+	/**
+	 * Add theme body class for dark mode.
+	 */
+	public function add_theme_body_class($classes)
+	{
+		if ('yes' === get_option('tryloom_enabled', 'yes')) {
+			$theme = get_option('tryloom_theme_color', 'light');
+			$classes[] = 'tryloom-theme-' . esc_attr($theme);
+		}
+		return $classes;
 	}
 
 	/**
@@ -169,7 +184,7 @@ class Tryloom_Frontend
 			// Get Add to Cart button classes.
 			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
 			// Use your own prefix
-			$button_classes = apply_filters('tryloom_product_single_add_to_cart_button_classes', 'button alt');
+			$button_classes = apply_filters('tryloom_product_single_add_to_cart_button_classes', 'button alt wp-element-button');
 
 			// Output button.
 			?>
@@ -257,7 +272,7 @@ class Tryloom_Frontend
 
 		// Get Add to Cart button classes.
 		// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
-		$button_classes = apply_filters('tryloom_product_single_add_to_cart_button_classes', 'button alt');
+		$button_classes = apply_filters('tryloom_product_single_add_to_cart_button_classes', 'button alt wp-element-button');
 
 		// Output button.
 		ob_start();
@@ -521,9 +536,12 @@ class Tryloom_Frontend
 		}
 
 		// Inject dynamic primary color via CSS variable at :root level
-		$primary_color = get_option('tryloom_primary_color', '#552FBC');
-		$root_css = ":root { --tryloom-primary-color: " . esc_attr($primary_color) . "; }";
-		wp_add_inline_style('tryloom-frontend', $root_css);
+		$primary_color = get_option('tryloom_primary_color', '');
+		if (!empty($primary_color)) {
+			$root_css = ":root { --tryloom-primary-color: " . esc_attr($primary_color) . "; }";
+			$root_css .= "\n.tryloom-button { background-color: " . esc_attr($primary_color) . " !important; }";
+			wp_add_inline_style('tryloom-frontend', $root_css);
+		}
 
 		// Enqueue scripts.
 		wp_enqueue_script(
@@ -541,7 +559,7 @@ class Tryloom_Frontend
 			array(
 				'ajax_url' => admin_url('admin-ajax.php'),
 				'nonce' => wp_create_nonce('tryloom'),
-				'primary_color' => get_option('tryloom_primary_color', '#552FBC'),
+				'primary_color' => get_option('tryloom_primary_color', ''),
 				'show_popup_errors' => get_option('tryloom_show_popup_errors', 'no') === 'yes',
 				'save_photos_setting' => get_option('tryloom_save_photos', 'yes'),
 				'hide_variations' => get_option('tryloom_hide_variations', 'no') === 'yes',
@@ -914,26 +932,35 @@ class Tryloom_Frontend
 
 				// Calculate what the date/time string should be for the current period
 				$current_period_identifier = '';
+				$tz = wp_timezone();
+				$dt = new DateTime('now', $tz);
+
 				switch ($time_period) {
 					case 'hour':
 						// E.g. "2026-02-20 10" (resets at the top of each hour)
 						$current_period_identifier = wp_date('Y-m-d H');
+						$dt->modify('+1 hour')->setTime((int)$dt->format('H'), 0, 0);
 						break;
 					case 'day':
 						// E.g. "2026-02-20" (resets at local midnight)
 						$current_period_identifier = wp_date('Y-m-d');
+						$dt->modify('+1 day')->setTime(0, 0, 0);
 						break;
 					case 'week':
 						// E.g. "2026-08" (Year and week number)
 						$current_period_identifier = wp_date('Y-W');
+						$dt->modify('next monday')->setTime(0, 0, 0);
 						break;
 					case 'month':
 						// E.g. "2026-02"
 						$current_period_identifier = wp_date('Y-m');
+						$dt->modify('first day of next month')->setTime(0, 0, 0);
 						break;
 					default:
 						$current_period_identifier = wp_date('Y-m-d H');
+						$dt->modify('+1 hour')->setTime((int)$dt->format('H'), 0, 0);
 				}
+				$reset_time_iso = $dt->format('c');
 
 				// If the period identifier doesn't match the last reset, reset the counter
 				if ($last_reset !== $current_period_identifier) {
@@ -947,7 +974,7 @@ class Tryloom_Frontend
 					wp_send_json_error(array(
 						'message' => __('You have reached your generation limit.', 'tryloom'),
 						'error_code' => 'limit_exceeded',
-						'reset_time' => $current_period_identifier,
+						'reset_time' => $reset_time_iso,
 						'upsell_url' => $upsell_url
 					));
 				}

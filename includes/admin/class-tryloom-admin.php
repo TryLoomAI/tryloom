@@ -75,260 +75,104 @@ class Tryloom_Admin
 			'tryloom_general_section',
 			__('General Settings', 'tryloom'),
 			array($this, 'general_section_callback'),
-			'tryloom-settings'
+			'tryloom-settings-general'
 		);
 
 		add_settings_section(
 			'tryloom_appearance_section',
 			__('Appearance Settings', 'tryloom'),
 			array($this, 'appearance_section_callback'),
-			'tryloom-settings'
+			'tryloom-settings-appearance'
 		);
 
 		add_settings_section(
-			'tryloom_user_section',
-			__('User Settings', 'tryloom'),
-			array($this, 'user_section_callback'),
-			'tryloom-settings'
+			'tryloom_access_section',
+			__('Access & Limits', 'tryloom'),
+			array($this, 'access_section_callback'),
+			'tryloom-settings-access'
+		);
+
+		add_settings_section(
+			'tryloom_privacy_section',
+			__('Privacy & User', 'tryloom'),
+			array($this, 'privacy_section_callback'),
+			'tryloom-settings-privacy'
 		);
 
 		add_settings_section(
 			'tryloom_advanced_section',
 			__('Advanced Settings', 'tryloom'),
 			array($this, 'advanced_section_callback'),
-			'tryloom-settings'
+			'tryloom-settings-advanced'
 		);
 
-		// Register general settings.
+		// General Tab Fields
+		register_setting('tryloom-settings-group-general', 'tryloom_platform_key', array('sanitize_callback' => array($this, 'sanitize_platform_key'), 'capability' => 'manage_options'));
+		register_setting('tryloom-settings-group-general', 'tryloom_enabled', array('sanitize_callback' => 'sanitize_text_field', 'capability' => 'manage_options'));
+		register_setting('tryloom-settings-group-general', 'tryloom_try_on_method', array('sanitize_callback' => 'sanitize_text_field', 'capability' => 'manage_options'));
+		register_setting('tryloom-settings-group-general', 'tryloom_button_placement', array('sanitize_callback' => 'sanitize_text_field', 'capability' => 'manage_options'));
+		register_setting('tryloom-settings-group-general', 'tryloom_allowed_categories', array('sanitize_callback' => array($this, 'sanitize_array'), 'capability' => 'manage_options'));
 
-		register_setting('tryloom-settings-group', 'tryloom_try_on_method', array('sanitize_callback' => 'sanitize_text_field', 'capability' => 'manage_options'));
-		register_setting('tryloom-settings-group', 'tryloom_enabled', array('sanitize_callback' => 'sanitize_text_field', 'capability' => 'manage_options'));
-		register_setting('tryloom-settings-group', 'tryloom_platform_key', array('sanitize_callback' => array($this, 'sanitize_platform_key'), 'capability' => 'manage_options'));
-		register_setting('tryloom-settings-group', 'tryloom_allowed_categories', array('sanitize_callback' => array($this, 'sanitize_array'), 'capability' => 'manage_options'));
-		register_setting('tryloom-settings-group', 'tryloom_button_placement', array('sanitize_callback' => 'sanitize_text_field', 'capability' => 'manage_options'));
+		// Appearance Tab Fields
+		register_setting('tryloom-settings-group-appearance', 'tryloom_theme_color', array('sanitize_callback' => 'sanitize_text_field', 'capability' => 'manage_options'));
+		register_setting('tryloom-settings-group-appearance', 'tryloom_primary_color', array('sanitize_callback' => 'sanitize_hex_color', 'capability' => 'manage_options'));
+		register_setting('tryloom-settings-group-appearance', 'tryloom_retry_button', array('sanitize_callback' => 'sanitize_text_field', 'capability' => 'manage_options'));
+		register_setting('tryloom-settings-group-appearance', 'tryloom_hide_variations', array('sanitize_callback' => 'sanitize_text_field', 'capability' => 'manage_options'));
+		register_setting('tryloom-settings-group-appearance', 'tryloom_custom_button_css', array('sanitize_callback' => 'wp_strip_all_tags', 'capability' => 'manage_options'));
+		register_setting('tryloom-settings-group-appearance', 'tryloom_custom_popup_css', array('sanitize_callback' => 'wp_strip_all_tags', 'capability' => 'manage_options'));
+		register_setting('tryloom-settings-group-appearance', 'tryloom_custom_account_css', array('sanitize_callback' => 'wp_strip_all_tags', 'capability' => 'manage_options'));
 
-		// Register appearance settings.
-		register_setting('tryloom-settings-group', 'tryloom_theme_color', array('sanitize_callback' => 'sanitize_text_field', 'capability' => 'manage_options'));
-		register_setting('tryloom-settings-group', 'tryloom_primary_color', array('sanitize_callback' => 'sanitize_hex_color', 'capability' => 'manage_options'));
-		register_setting('tryloom-settings-group', 'tryloom_retry_button', array('sanitize_callback' => 'sanitize_text_field', 'capability' => 'manage_options'));
-		// register_setting( 'tryloom-settings-group', 'tryloom_brand_watermark', array( 'sanitize_callback' => 'absint' ) );
-		register_setting('tryloom-settings-group', 'tryloom_custom_popup_css', array('sanitize_callback' => 'wp_strip_all_tags', 'capability' => 'manage_options'));
-		register_setting('tryloom-settings-group', 'tryloom_custom_button_css', array('sanitize_callback' => 'wp_strip_all_tags', 'capability' => 'manage_options'));
-		register_setting('tryloom-settings-group', 'tryloom_custom_account_css', array('sanitize_callback' => 'wp_strip_all_tags', 'capability' => 'manage_options'));
-		register_setting('tryloom-settings-group', 'tryloom_hide_variations', array('sanitize_callback' => 'sanitize_text_field', 'capability' => 'manage_options'));
+		// Access Tab Fields
+		register_setting('tryloom-settings-group-access', 'tryloom_allowed_user_roles', array('sanitize_callback' => array($this, 'sanitize_array'), 'capability' => 'manage_options'));
+		register_setting('tryloom-settings-group-access', 'tryloom_generation_limit', array('sanitize_callback' => 'absint', 'capability' => 'manage_options'));
+		register_setting('tryloom-settings-group-access', 'tryloom_time_period', array('sanitize_callback' => 'sanitize_text_field', 'capability' => 'manage_options'));
+		register_setting('tryloom-settings-group-access', 'tryloom_role_limits', array('sanitize_callback' => array($this, 'sanitize_role_limits_array'), 'capability' => 'manage_options'));
+		register_setting('tryloom-settings-group-access', 'tryloom_limit_upsell_url', array('sanitize_callback' => 'esc_url_raw', 'capability' => 'manage_options'));
 
-		// Register user settings.
-		register_setting('tryloom-settings-group', 'tryloom_save_photos', array('sanitize_callback' => 'sanitize_text_field', 'capability' => 'manage_options'));
-		register_setting('tryloom-settings-group', 'tryloom_generation_limit', array('sanitize_callback' => 'absint', 'capability' => 'manage_options'));
-		register_setting('tryloom-settings-group', 'tryloom_time_period', array('sanitize_callback' => 'sanitize_text_field', 'capability' => 'manage_options'));
-		register_setting('tryloom-settings-group', 'tryloom_delete_photos_days', array('sanitize_callback' => 'absint', 'capability' => 'manage_options'));
-		register_setting('tryloom-settings-group', 'tryloom_allowed_user_roles', array('sanitize_callback' => array($this, 'sanitize_array'), 'capability' => 'manage_options'));
-		register_setting('tryloom-settings-group', 'tryloom_enable_history', array('sanitize_callback' => 'sanitize_text_field', 'capability' => 'manage_options'));
-		register_setting('tryloom-settings-group', 'tryloom_role_limits', array('sanitize_callback' => array($this, 'sanitize_role_limits_array'), 'capability' => 'manage_options'));
-		register_setting('tryloom-settings-group', 'tryloom_limit_upsell_url', array('sanitize_callback' => 'esc_url_raw', 'capability' => 'manage_options'));
+		// Privacy Tab Fields
+		register_setting('tryloom-settings-group-privacy', 'tryloom_save_photos', array('sanitize_callback' => 'sanitize_text_field', 'capability' => 'manage_options'));
+		register_setting('tryloom-settings-group-privacy', 'tryloom_delete_photos_days', array('sanitize_callback' => 'absint', 'capability' => 'manage_options'));
+		register_setting('tryloom-settings-group-privacy', 'tryloom_enable_history', array('sanitize_callback' => 'sanitize_text_field', 'capability' => 'manage_options'));
 
-		// Register advanced settings.
-		register_setting('tryloom-settings-group', 'tryloom_enable_logging', array('sanitize_callback' => 'sanitize_text_field', 'capability' => 'manage_options'));
-		register_setting('tryloom-settings-group', 'tryloom_admin_user_roles', array('sanitize_callback' => array($this, 'sanitize_array'), 'capability' => 'manage_options'));
-		register_setting('tryloom-settings-group', 'tryloom_show_popup_errors', array('sanitize_callback' => 'sanitize_text_field', 'capability' => 'manage_options'));
-		register_setting('tryloom-settings-group', 'tryloom_remove_data_on_delete', array('sanitize_callback' => 'sanitize_text_field', 'capability' => 'manage_options'));
+		// Advanced Tab Fields
+		register_setting('tryloom-settings-group-advanced', 'tryloom_enable_logging', array('sanitize_callback' => 'sanitize_text_field', 'capability' => 'manage_options'));
+		register_setting('tryloom-settings-group-advanced', 'tryloom_show_popup_errors', array('sanitize_callback' => 'sanitize_text_field', 'capability' => 'manage_options'));
+		register_setting('tryloom-settings-group-advanced', 'tryloom_admin_user_roles', array('sanitize_callback' => array($this, 'sanitize_array'), 'capability' => 'manage_options'));
+		register_setting('tryloom-settings-group-advanced', 'tryloom_remove_data_on_delete', array('sanitize_callback' => 'sanitize_text_field', 'capability' => 'manage_options'));
 
-		// Add settings fields.
-		// General settings.
-		add_settings_field(
-			'tryloom_enabled',
-			__('Enable TryLoom', 'tryloom'),
-			array($this, 'enabled_callback'),
-			'tryloom-settings',
-			'tryloom_general_section'
-		);
+		// General Settings Field Callbacks
+		add_settings_field('tryloom_platform_key', __('Platform Key', 'tryloom'), array($this, 'platform_key_callback'), 'tryloom-settings-general', 'tryloom_general_section');
+		add_settings_field('tryloom_enabled', __('Enable TryLoom', 'tryloom'), array($this, 'enabled_callback'), 'tryloom-settings-general', 'tryloom_general_section');
+		add_settings_field('tryloom_try_on_method', __('Try-On Method', 'tryloom'), array($this, 'try_on_method_callback'), 'tryloom-settings-general', 'tryloom_general_section');
+		add_settings_field('tryloom_button_placement', __('Button Placement', 'tryloom'), array($this, 'button_placement_callback'), 'tryloom-settings-general', 'tryloom_general_section');
+		add_settings_field('tryloom_allowed_categories', __('Allowed Categories', 'tryloom'), array($this, 'allowed_categories_callback'), 'tryloom-settings-general', 'tryloom_general_section');
 
-		add_settings_field(
-			'tryloom_try_on_method',
-			__('Try-On Method', 'tryloom'),
-			array($this, 'try_on_method_callback'),
-			'tryloom-settings',
-			'tryloom_general_section'
-		);
+		// Appearance Settings Field Callbacks
+		add_settings_field('tryloom_theme_color', __('Theme Color', 'tryloom'), array($this, 'theme_color_callback'), 'tryloom-settings-appearance', 'tryloom_appearance_section');
+		add_settings_field('tryloom_primary_color', __('Primary Button Color', 'tryloom'), array($this, 'primary_color_callback'), 'tryloom-settings-appearance', 'tryloom_appearance_section');
+		add_settings_field('tryloom_retry_button', __('Show Retry Button', 'tryloom'), array($this, 'retry_button_callback'), 'tryloom-settings-appearance', 'tryloom_appearance_section');
+		add_settings_field('tryloom_hide_variations', __('Hide Variations', 'tryloom'), array($this, 'hide_variations_callback'), 'tryloom-settings-appearance', 'tryloom_appearance_section');
+		add_settings_field('tryloom_custom_button_css', __('Custom Button CSS', 'tryloom'), array($this, 'custom_button_css_callback'), 'tryloom-settings-appearance', 'tryloom_appearance_section');
+		add_settings_field('tryloom_custom_popup_css', __('Custom Popup CSS', 'tryloom'), array($this, 'custom_popup_css_callback'), 'tryloom-settings-appearance', 'tryloom_appearance_section');
+		add_settings_field('tryloom_custom_account_css', __('Custom Account Page CSS', 'tryloom'), array($this, 'custom_account_css_callback'), 'tryloom-settings-appearance', 'tryloom_appearance_section');
 
-		add_settings_field(
-			'tryloom_platform_key',
-			__('Platform Key', 'tryloom'),
-			array($this, 'platform_key_callback'),
-			'tryloom-settings',
-			'tryloom_general_section'
-		);
+		// Access Settings Field Callbacks
+		add_settings_field('tryloom_allowed_user_roles', __('Allowed User Roles', 'tryloom'), array($this, 'allowed_user_roles_callback'), 'tryloom-settings-access', 'tryloom_access_section');
+		add_settings_field('tryloom_generation_limit', __('Generation Limit', 'tryloom'), array($this, 'generation_limit_callback'), 'tryloom-settings-access', 'tryloom_access_section');
+		add_settings_field('tryloom_time_period', __('Time Period', 'tryloom'), array($this, 'time_period_callback'), 'tryloom-settings-access', 'tryloom_access_section');
+		add_settings_field('tryloom_role_limits', __('Advanced Limits', 'tryloom'), array($this, 'role_limits_callback'), 'tryloom-settings-access', 'tryloom_access_section');
+		add_settings_field('tryloom_limit_upsell_url', __('Limit Exceeded Upsell URL', 'tryloom'), array($this, 'limit_upsell_url_callback'), 'tryloom-settings-access', 'tryloom_access_section');
 
-		add_settings_field(
-			'tryloom_allowed_categories',
-			__('Allowed Categories', 'tryloom'),
-			array($this, 'allowed_categories_callback'),
-			'tryloom-settings',
-			'tryloom_general_section'
-		);
+		// Privacy Settings Field Callbacks
+		add_settings_field('tryloom_save_photos', __('Save User Photos', 'tryloom'), array($this, 'save_photos_callback'), 'tryloom-settings-privacy', 'tryloom_privacy_section');
+		add_settings_field('tryloom_delete_photos_days', __('Delete Photos After (Days)', 'tryloom'), array($this, 'delete_photos_days_callback'), 'tryloom-settings-privacy', 'tryloom_privacy_section');
+		add_settings_field('tryloom_enable_history', __('Enable History', 'tryloom'), array($this, 'enable_history_callback'), 'tryloom-settings-privacy', 'tryloom_privacy_section');
 
-		add_settings_field(
-			'tryloom_button_placement',
-			__('Button Placement', 'tryloom'),
-			array($this, 'button_placement_callback'),
-			'tryloom-settings',
-			'tryloom_general_section'
-		);
-
-		// Appearance settings.
-		add_settings_field(
-			'tryloom_theme_color',
-			__('Theme Color', 'tryloom'),
-			array($this, 'theme_color_callback'),
-			'tryloom-settings',
-			'tryloom_appearance_section'
-		);
-
-		add_settings_field(
-			'tryloom_primary_color',
-			__('Primary Button Color', 'tryloom'),
-			array($this, 'primary_color_callback'),
-			'tryloom-settings',
-			'tryloom_appearance_section'
-		);
-
-		add_settings_field(
-			'tryloom_retry_button',
-			__('Show Retry Button', 'tryloom'),
-			array($this, 'retry_button_callback'),
-			'tryloom-settings',
-			'tryloom_appearance_section'
-		);
-
-		add_settings_field(
-			'tryloom_hide_variations',
-			__('Hide Variations', 'tryloom'),
-			array($this, 'hide_variations_callback'),
-			'tryloom-settings',
-			'tryloom_appearance_section'
-		);
-
-		add_settings_field(
-			'tryloom_custom_popup_css',
-			__('Custom Popup CSS', 'tryloom'),
-			array($this, 'custom_popup_css_callback'),
-			'tryloom-settings',
-			'tryloom_appearance_section'
-		);
-
-		add_settings_field(
-			'tryloom_custom_button_css',
-			__('Custom Button CSS', 'tryloom'),
-			array($this, 'custom_button_css_callback'),
-			'tryloom-settings',
-			'tryloom_appearance_section'
-		);
-
-		add_settings_field(
-			'tryloom_custom_account_css',
-			__('Custom Account Page CSS', 'tryloom'),
-			array($this, 'custom_account_css_callback'),
-			'tryloom-settings',
-			'tryloom_appearance_section'
-		);
-
-		// User settings.
-		add_settings_field(
-			'tryloom_save_photos',
-			__('Save User Photos', 'tryloom'),
-			array($this, 'save_photos_callback'),
-			'tryloom-settings',
-			'tryloom_user_section'
-		);
-
-		add_settings_field(
-			'tryloom_generation_limit',
-			__('Generation Limit', 'tryloom'),
-			array($this, 'generation_limit_callback'),
-			'tryloom-settings',
-			'tryloom_user_section'
-		);
-
-		add_settings_field(
-			'tryloom_role_limits',
-			__('Advanced Limits', 'tryloom'),
-			array($this, 'role_limits_callback'),
-			'tryloom-settings',
-			'tryloom_user_section'
-		);
-
-		add_settings_field(
-			'tryloom_time_period',
-			__('Time Period', 'tryloom'),
-			array($this, 'time_period_callback'),
-			'tryloom-settings',
-			'tryloom_user_section'
-		);
-
-		add_settings_field(
-			'tryloom_delete_photos_days',
-			__('Delete Photos After (Days)', 'tryloom'),
-			array($this, 'delete_photos_days_callback'),
-			'tryloom-settings',
-			'tryloom_user_section'
-		);
-
-		add_settings_field(
-			'tryloom_allowed_user_roles',
-			__('Allowed User Roles', 'tryloom'),
-			array($this, 'allowed_user_roles_callback'),
-			'tryloom-settings',
-			'tryloom_user_section'
-		);
-
-		add_settings_field(
-			'tryloom_enable_history',
-			__('Enable History', 'tryloom'),
-			array($this, 'enable_history_callback'),
-			'tryloom-settings',
-			'tryloom_user_section'
-		);
-
-		add_settings_field(
-			'tryloom_limit_upsell_url',
-			__('Limit Exceeded Upsell URL', 'tryloom'),
-			array($this, 'limit_upsell_url_callback'),
-			'tryloom-settings',
-			'tryloom_user_section'
-		);
-
-		// Advanced settings.
-		add_settings_field(
-			'tryloom_enable_logging',
-			__('Enable Logging', 'tryloom'),
-			array($this, 'enable_logging_callback'),
-			'tryloom-settings',
-			'tryloom_advanced_section'
-		);
-
-		add_settings_field(
-			'tryloom_admin_user_roles',
-			__('Admin Access Roles', 'tryloom'),
-			array($this, 'admin_user_roles_callback'),
-			'tryloom-settings',
-			'tryloom_advanced_section'
-		);
-
-		add_settings_field(
-			'tryloom_show_popup_errors',
-			__('Show Browser Popup Errors', 'tryloom'),
-			array($this, 'show_popup_errors_callback'),
-			'tryloom-settings',
-			'tryloom_advanced_section'
-		);
-
-		add_settings_field(
-			'tryloom_remove_data_on_delete',
-			__('Remove Data on Uninstall', 'tryloom'),
-			array($this, 'remove_data_on_delete_callback'),
-			'tryloom-settings',
-			'tryloom_advanced_section'
-		);
+		// Advanced Settings Field Callbacks
+		add_settings_field('tryloom_enable_logging', __('Enable Logging', 'tryloom'), array($this, 'enable_logging_callback'), 'tryloom-settings-advanced', 'tryloom_advanced_section');
+		add_settings_field('tryloom_show_popup_errors', __('Show Browser Popup Errors', 'tryloom'), array($this, 'show_popup_errors_callback'), 'tryloom-settings-advanced', 'tryloom_advanced_section');
+		add_settings_field('tryloom_admin_user_roles', __('Admin Access Roles', 'tryloom'), array($this, 'admin_user_roles_callback'), 'tryloom-settings-advanced', 'tryloom_advanced_section');
+		add_settings_field('tryloom_remove_data_on_delete', __('Remove Data on Uninstall', 'tryloom'), array($this, 'remove_data_on_delete_callback'), 'tryloom-settings-advanced', 'tryloom_advanced_section');
 	}
 
 	/**
@@ -424,7 +268,7 @@ class Tryloom_Admin
 	 */
 	public function general_section_callback()
 	{
-		echo '<p>' . esc_html__('Check Out Our Website for Subscription Options', 'tryloom') . '</p>';
+		echo '<p>' . esc_html__('Configure core settings and view your current API usage.', 'tryloom') . '</p>';
 	}
 
 	/**
@@ -436,11 +280,19 @@ class Tryloom_Admin
 	}
 
 	/**
-	 * User section callback.
+	 * Access section callback.
 	 */
-	public function user_section_callback()
+	public function access_section_callback()
 	{
-		echo '<p>' . esc_html__('Control how user photos, limits, and history are managed.', 'tryloom') . '</p>';
+		echo '<p>' . esc_html__('Control who can use the feature and set tier limits.', 'tryloom') . '</p>';
+	}
+
+	/**
+	 * Privacy section callback.
+	 */
+	public function privacy_section_callback()
+	{
+		echo '<p>' . esc_html__('Manage user data retention, photos, and history.', 'tryloom') . '</p>';
 	}
 
 	/**
@@ -644,12 +496,12 @@ class Tryloom_Admin
 	 */
 	public function primary_color_callback()
 	{
-		$primary_color = get_option('tryloom_primary_color', '#552FBC');
+		$primary_color = get_option('tryloom_primary_color', '');
 		?>
 		<input type="text" name="tryloom_primary_color" value="<?php echo esc_attr($primary_color); ?>"
 			class="tryloom-admin__color-picker" data-default-color="#552FBC" />
 		<p class="description">
-			<?php esc_html_e('Set the main color used for Try-On buttons and UI highlights.', 'tryloom'); ?>
+			<?php esc_html_e('Set the main color used for Try-On buttons and UI highlights. Leave empty to inherit WooCommerce Add to Cart styling.', 'tryloom'); ?>
 		</p>
 		<?php
 	}
@@ -885,6 +737,7 @@ class Tryloom_Admin
 		$remove_data = get_option('tryloom_remove_data_on_delete', 'no');
 		?>
 		<label>
+			<input type="hidden" name="tryloom_remove_data_on_delete" value="no" />
 			<input type="checkbox" name="tryloom_remove_data_on_delete" value="yes" <?php checked($remove_data, 'yes'); ?> />
 			<?php esc_html_e('Remove all data when I delete the plugin', 'tryloom'); ?>
 		</label>
@@ -905,10 +758,10 @@ class Tryloom_Admin
 		<p class="description">
 			<?php esc_html_e('Add custom CSS for the TryLoom popup modal.', 'tryloom'); ?><br>
 			<strong><?php esc_html_e('CSS Classes:', 'tryloom'); ?></strong>
-			<code>.tryloom-popup</code>, <code>.tryloom-popup-content</code>,
-			<code>.tryloom-popup-header</code>, <code>.tryloom-popup-body</code>,
-			<code>.tryloom-upload-area</code>, <code>.tryloom-variations-container</code>,
-			<code>.tryloom-result</code>
+			<code>.tryloom-popup</code>, <code>.tryloom-popup__content</code>,
+			<code>.tryloom-popup__header</code>, <code>.tryloom-popup__body</code>,
+			<code>.tryloom-popup__upload-area</code>, <code>.tryloom-popup__variations-container</code>,
+			<code>.tryloom-popup__result</code>
 		</p>
 		<?php
 	}
@@ -942,8 +795,8 @@ class Tryloom_Admin
 		<p class="description">
 			<?php esc_html_e('Add custom CSS for the Try-On tab in the My Account page.', 'tryloom'); ?><br>
 			<strong><?php esc_html_e('CSS Classes:', 'tryloom'); ?></strong>
-			<code>.tryloom-account</code>, <code>.tryloom-account-photos</code>,
-			<code>.tryloom-account-photo</code>, <code>.tryloom-history-table</code>
+			<code>.tryloom-account</code>, <code>.tryloom-account__photos</code>,
+			<code>.tryloom-account__photo</code>, <code>.tryloom-account__history-table</code>
 		</p>
 		<?php
 	}
@@ -1507,115 +1360,159 @@ class Tryloom_Admin
 		?>
 		<div id="tryloom-admin-wrap" class="wrap tryloom-admin">
 			<h1 class="tryloom-admin__title">
-				<?php esc_html_e('TryLoom Settings  - Virtual Try On for WooCommerce', 'tryloom'); ?>
+				<?php esc_html_e('TryLoom Settings  - AI Virtual Try On for WooCommerce', 'tryloom'); ?>
 			</h1>
 
-			<!-- Statistics Grid -->
-			<div class="tryloom-admin__stats-grid">
-				<!-- Box 1: Today's Performance -->
-				<div class="tryloom-admin__stat-card">
-					<div class="tryloom-admin__stat-card-header">
-						<h2><?php esc_html_e("Today's Performance", 'tryloom'); ?></h2>
-					</div>
-					<div class="tryloom-admin__stat-card-body tryloom-admin__stat-row">
-						<div>
-							<h3 class="tryloom-admin__stat-title"><?php esc_html_e('Active Users', 'tryloom'); ?></h3>
-							<p class="tryloom-admin__stat-value"><?php echo esc_html($today_active_users); ?></p>
-						</div>
-						<div class="tryloom-admin__stat-divider"></div>
-						<div>
-							<h3 class="tryloom-admin__stat-title"><?php esc_html_e('Try-On Uses', 'tryloom'); ?></h3>
-							<p class="tryloom-admin__stat-value"><?php echo esc_html($today_try_on_count); ?></p>
-						</div>
-					</div>
-				</div>
+			<?php
+			$active_tab = isset($_GET['tab']) ? sanitize_text_field(wp_unslash($_GET['tab'])) : 'general';
+			?>
+			<nav class="nav-tab-wrapper tryloom-admin-tabs">
+				<a href="?page=tryloom-settings&tab=general"
+					class="nav-tab <?php echo $active_tab === 'general' ? 'nav-tab-active' : ''; ?>"><?php esc_html_e('General', 'tryloom'); ?></a>
+				<a href="?page=tryloom-settings&tab=appearance"
+					class="nav-tab <?php echo $active_tab === 'appearance' ? 'nav-tab-active' : ''; ?>"><?php esc_html_e('Appearance', 'tryloom'); ?></a>
+				<a href="?page=tryloom-settings&tab=access"
+					class="nav-tab <?php echo $active_tab === 'access' ? 'nav-tab-active' : ''; ?>"><?php esc_html_e('Access', 'tryloom'); ?></a>
+				<a href="?page=tryloom-settings&tab=privacy"
+					class="nav-tab <?php echo $active_tab === 'privacy' ? 'nav-tab-active' : ''; ?>"><?php esc_html_e('Privacy', 'tryloom'); ?></a>
+				<a href="?page=tryloom-settings&tab=advanced"
+					class="nav-tab <?php echo $active_tab === 'advanced' ? 'nav-tab-active' : ''; ?>"><?php esc_html_e('Advanced', 'tryloom'); ?></a>
+			</nav>
 
-				<!-- Box 2: Last 30 Days -->
-				<div class="tryloom-admin__stat-card">
-					<div class="tryloom-admin__stat-card-header">
-						<h2><?php esc_html_e("Last 30 Days", 'tryloom'); ?></h2>
-					</div>
-					<div class="tryloom-admin__stat-card-body tryloom-admin__stat-row">
-						<div>
-							<h3 class="tryloom-admin__stat-title"><?php esc_html_e('Active Users', 'tryloom'); ?></h3>
-							<p class="tryloom-admin__stat-value"><?php echo esc_html($last_30_days_users); ?></p>
-						</div>
-						<div class="tryloom-admin__stat-divider"></div>
-						<div>
-							<h3 class="tryloom-admin__stat-title"><?php esc_html_e('Try-On Uses', 'tryloom'); ?></h3>
-							<p class="tryloom-admin__stat-value"><?php echo esc_html($last_30_days_count); ?></p>
-						</div>
-					</div>
-				</div>
-
-				<!-- Box 3: Usage Counter -->
-				<?php
-				$usage_used = get_option('tryloom_usage_used', null);
-				$usage_limit = get_option('tryloom_usage_limit', null);
-				if (null !== $usage_used && null !== $usage_limit) { ?>
+			<?php if ($active_tab === 'general'): ?>
+				<!-- Statistics Grid -->
+				<div class="tryloom-admin__stats-grid">
+					<!-- Box 1: Today's Performance -->
 					<div class="tryloom-admin__stat-card">
 						<div class="tryloom-admin__stat-card-header">
-							<h2><?php esc_html_e('Usage Counter', 'tryloom'); ?></h2>
+							<h2><?php esc_html_e("Today's Performance", 'tryloom'); ?></h2>
 						</div>
-						<div class="tryloom-admin__stat-card-body tryloom-admin__usage-flex">
-							<p class="description tryloom-admin__usage-desc">
-								<?php esc_html_e('Your current Try-On usage compared to your monthly (or plan-based) limit.', 'tryloom'); ?>
-							</p>
-							<p class="tryloom-admin__usage-val">
-								<?php echo esc_html($usage_used); ?> / <span
-									class="tryloom-admin__usage-sub"><?php echo esc_html($usage_limit); ?></span>
-							</p>
+						<div class="tryloom-admin__stat-card-body tryloom-admin__stat-row">
+							<div>
+								<h3 class="tryloom-admin__stat-title"><?php esc_html_e('Active Users', 'tryloom'); ?></h3>
+								<p class="tryloom-admin__stat-value"><?php echo esc_html($today_active_users); ?></p>
+							</div>
+							<div class="tryloom-admin__stat-divider"></div>
+							<div>
+								<h3 class="tryloom-admin__stat-title"><?php esc_html_e('Try-On Uses', 'tryloom'); ?></h3>
+								<p class="tryloom-admin__stat-value"><?php echo esc_html($today_try_on_count); ?></p>
+							</div>
 						</div>
 					</div>
-				<?php } ?>
 
-				<!-- Box 4: Subscription Options -->
-				<?php
-				$paid_key = get_option('tryloom_platform_key', '');
-				$free_key = get_option('tryloom_free_platform_key', '');
-				$show_start_free_button = empty($paid_key) && empty($free_key);
-				?>
-				<div class="tryloom-admin__stat-card">
-					<div class="tryloom-admin__stat-card-header">
-						<h2><?php esc_html_e('Explore Subscription Plans for TryLoom', 'tryloom'); ?></h2>
+					<!-- Box 2: Last 30 Days -->
+					<div class="tryloom-admin__stat-card">
+						<div class="tryloom-admin__stat-card-header">
+							<h2><?php esc_html_e("Last 30 Days", 'tryloom'); ?></h2>
+						</div>
+						<div class="tryloom-admin__stat-card-body tryloom-admin__stat-row">
+							<div>
+								<h3 class="tryloom-admin__stat-title"><?php esc_html_e('Active Users', 'tryloom'); ?></h3>
+								<p class="tryloom-admin__stat-value"><?php echo esc_html($last_30_days_users); ?></p>
+							</div>
+							<div class="tryloom-admin__stat-divider"></div>
+							<div>
+								<h3 class="tryloom-admin__stat-title"><?php esc_html_e('Try-On Uses', 'tryloom'); ?></h3>
+								<p class="tryloom-admin__stat-value"><?php echo esc_html($last_30_days_count); ?></p>
+							</div>
+						</div>
 					</div>
-					<div class="tryloom-admin__stat-card-body tryloom-admin__sub-flex">
-						<div class="tryloom-admin__header-actions tryloom-admin__sub-actions">
-							<?php if ($show_start_free_button): ?>
-								<a href="https://gettryloom.com/my-account/"
-									class="button button-primary tryloom-admin__margin-right-10" target="_blank">
-									<?php esc_html_e('Start for Free', 'tryloom'); ?>
+
+					<!-- Box 3: Usage Counter -->
+					<?php
+					$usage_used = get_option('tryloom_usage_used', null);
+					$usage_limit = get_option('tryloom_usage_limit', null);
+					if (null !== $usage_used && null !== $usage_limit) { ?>
+						<div class="tryloom-admin__stat-card">
+							<div class="tryloom-admin__stat-card-header">
+								<h2><?php esc_html_e('Usage Counter', 'tryloom'); ?></h2>
+							</div>
+							<div class="tryloom-admin__stat-card-body tryloom-admin__usage-flex">
+								<p class="description tryloom-admin__usage-desc">
+									<?php esc_html_e('Your current Try-On usage compared to your monthly (or plan-based) limit.', 'tryloom'); ?>
+								</p>
+								<p class="tryloom-admin__usage-val">
+									<?php echo esc_html($usage_used); ?> / <span
+										class="tryloom-admin__usage-sub"><?php echo esc_html($usage_limit); ?></span>
+								</p>
+							</div>
+						</div>
+					<?php } ?>
+
+					<!-- Box 4: Subscription Options -->
+					<?php
+					$paid_key = get_option('tryloom_platform_key', '');
+					$free_key = get_option('tryloom_free_platform_key', '');
+					$show_start_free_button = empty($paid_key) && empty($free_key);
+					?>
+					<div class="tryloom-admin__stat-card">
+						<div class="tryloom-admin__stat-card-header">
+							<h2><?php esc_html_e('Explore Subscription Plans for TryLoom', 'tryloom'); ?></h2>
+						</div>
+						<div class="tryloom-admin__stat-card-body tryloom-admin__sub-flex">
+							<div class="tryloom-admin__header-actions tryloom-admin__sub-actions">
+								<?php if ($show_start_free_button): ?>
+									<a href="https://gettryloom.com/my-account/"
+										class="button button-primary tryloom-admin__margin-right-10" target="_blank">
+										<?php esc_html_e('Start for Free', 'tryloom'); ?>
+									</a>
+								<?php endif; ?>
+								<a href="https://gettryloom.com/#pricing" class="button button-primary" target="_blank">
+									<?php esc_html_e('Subscription Options', 'tryloom'); ?>
 								</a>
-							<?php endif; ?>
-							<a href="https://gettryloom.com/#pricing" class="button button-primary" target="_blank">
-								<?php esc_html_e('Subscription Options', 'tryloom'); ?>
-							</a>
+							</div>
 						</div>
 					</div>
 				</div>
-			</div>
+			<?php endif; ?>
 
 			<!-- Settings Form -->
 			<form method="post" action="options.php" class="tryloom-admin__form">
 				<?php
-				settings_fields('tryloom-settings-group');
-				do_settings_sections('tryloom-settings');
+				settings_fields("tryloom-settings-group-{$active_tab}");
+				do_settings_sections("tryloom-settings-{$active_tab}");
 				submit_button();
 				?>
 			</form>
 
-			<div class="tryloom-admin__footer">
-				<h3 class="tryloom-admin__footer-title"><?php esc_html_e('Privacy Policy', 'tryloom'); ?></h3>
-				<p class="tryloom-admin__footer-text">
-					<?php esc_html_e('Please add appropriate privacy statements to your Privacy Policy page.', 'tryloom'); ?>
-				</p>
-				<p class="tryloom-admin__footer-text"><?php esc_html_e('Suggested privacy policy text:', 'tryloom'); ?></p>
-				<blockquote class="tryloom-admin__privacy-quote">
-					<p>
-						<?php esc_html_e('When you use our virtual try-on feature, we may collect and process images you upload for the purpose of showing how products may look when worn. These images may be stored on our server based on your preferences and our settings. You can manage your saved images in your account settings.', 'tryloom'); ?>
+			<?php if ($active_tab === 'privacy'): ?>
+				<div class="tryloom-admin__bulk-actions"
+					style="margin-top: 30px; padding: 20px; background: #fff; border: 1px solid #ccd0d4; box-shadow: 0 1px 1px rgba(0,0,0,.04);">
+					<h2><?php esc_html_e('Data Management', 'tryloom'); ?></h2>
+					<p><?php esc_html_e('These actions are permanent and cannot be undone.', 'tryloom'); ?></p>
+					<form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>"
+						style="display:inline-block; margin-right: 15px;">
+						<?php wp_nonce_field('tryloom_clear_all_history'); ?>
+						<input type="hidden" name="action" value="tryloom_clear_all_history">
+						<button type="submit" class="button button-secondary"
+							onclick="return confirm('<?php esc_attr_e('Are you sure you want to clear all try-on history? This will delete the database records, but the photos will remain on your server unless you also delete user photos.', 'tryloom'); ?>');">
+							<?php esc_html_e('Clear All History Logs', 'tryloom'); ?>
+						</button>
+					</form>
+					<form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" style="display:inline-block;">
+						<?php wp_nonce_field('tryloom_delete_user_photos'); ?>
+						<input type="hidden" name="action" value="tryloom_delete_user_photos">
+						<button type="submit" class="button button-secondary"
+							onclick="return confirm('<?php esc_attr_e('Are you sure you want to permanently delete all try-on photos uploaded by users? This action cannot be undone.', 'tryloom'); ?>');">
+							<?php esc_html_e('Delete All User Photos', 'tryloom'); ?>
+						</button>
+					</form>
+				</div>
+
+				<div class="tryloom-admin__footer" style="margin-top: 30px;">
+					<h3 class="tryloom-admin__footer-title"><?php esc_html_e('Privacy Policy', 'tryloom'); ?></h3>
+					<p class="tryloom-admin__footer-text">
+						<?php esc_html_e('Please add appropriate privacy statements to your Privacy Policy page.', 'tryloom'); ?>
 					</p>
-				</blockquote>
-			</div>
+					<p class="tryloom-admin__footer-text"><?php esc_html_e('Suggested privacy policy text:', 'tryloom'); ?></p>
+					<blockquote class="tryloom-admin__privacy-quote">
+						<p>
+							<?php esc_html_e('When you use our virtual try-on feature, we may collect and process images you upload for the purpose of showing how products may look when worn. These images may be stored on our server based on your preferences and our settings. You can manage your saved images in your account settings.', 'tryloom'); ?>
+						</p>
+					</blockquote>
+				</div>
+			<?php endif; ?>
+
 		</div> <!-- End #tryloom-admin-wrap -->
 		<?php
 	}

@@ -120,7 +120,6 @@ body.tryloom-scroll-lock {
 }
 
 /* Try On Buttons & Utilities */
-.tryloom-button,
 .tryloom-generate,
 .tryloom-add-to-cart,
 .tryloom-upsell-button,
@@ -130,6 +129,7 @@ body.tryloom-scroll-lock {
 #tryloom-popup-wrap .tryloom-popup__upsell-btn {
     background-color: var(--tryloom-primary-color, #552FBC) !important;
     color: #fff !important;
+    text-decoration: none !important;
 }
 
 #tryloom-popup-wrap .tryloom-popup__login-link {
@@ -167,14 +167,16 @@ body.tryloom-scroll-lock {
     overflow: hidden;
 }
 
-.tryloom-button>* {
-    position: relative;
-}
-
 .tryloom-button:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(0, 115, 170, 0.3);
 }
+
+.tryloom-button>* {
+    position: relative;
+}
+
+
 
 /* Popup */
 #tryloom-popup-wrap .tryloom-popup {
@@ -747,6 +749,7 @@ body.tryloom-scroll-lock {
 #tryloom-popup-wrap .tryloom-popup__generate-btn,
 #tryloom-popup-wrap .tryloom-popup__retry-btn,
 #tryloom-popup-wrap .tryloom-popup__add-to-cart-btn,
+#tryloom-popup-wrap .tryloom-popup__upsell-btn,
 #tryloom-popup-wrap .tryloom-popup__download-icon {
     padding: 14px 32px;
     border-radius: 10px;
@@ -797,6 +800,7 @@ body.tryloom-scroll-lock {
 
 #tryloom-popup-wrap .tryloom-popup__generate-btn:hover,
 #tryloom-popup-wrap .tryloom-popup__add-to-cart-btn:hover,
+#tryloom-popup-wrap .tryloom-popup__upsell-btn:hover,
 #tryloom-popup-wrap .tryloom-popup__download-icon:hover {
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
@@ -1052,6 +1056,19 @@ body.tryloom-scroll-lock {
     flex-direction: column;
     align-items: center;
     justify-content: center;
+}
+
+#tryloom-popup-wrap .tryloom-popup__alert-msg {
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--tryloom-text-main);
+    margin: 20px 0 10px;
+}
+
+#tryloom-popup-wrap .tryloom-popup__reset-time {
+    font-size: 15px;
+    color: var(--tryloom-text-muted);
+    margin-bottom: 25px;
 }
 
 #tryloom-popup-wrap .tryloom-popup__loading-overlay p {

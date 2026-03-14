@@ -1355,8 +1355,14 @@
 						if (response.data && response.data.error_code === 'limit_exceeded') {
 							// Populate Step 3
 							if (response.data.reset_time) {
-								$('.tryloom-popup__reset-time span').text(response.data.reset_time);
-								$('.tryloom-popup__reset-time').show();
+								let resetDate = new Date(response.data.reset_time);
+								if (!isNaN(resetDate)) {
+									let dateString = resetDate.toLocaleString([], { year: 'numeric', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+									$('.tryloom-popup__reset-time span').text(dateString);
+									$('.tryloom-popup__reset-time').show();
+								} else {
+									$('.tryloom-popup__reset-time').hide();
+								}
 							} else {
 								$('.tryloom-popup__reset-time').hide();
 							}

@@ -159,13 +159,12 @@ if (!isset($default_photo_url)) {
                             echo str_replace(array('width="24"', 'height="24"'), array('width="48"', 'height="48"'), $lock_icon);
                             ?>
                         </span>
-                        <h4 class="tryloom-popup__alert-title"><?php esc_html_e('Limit Exceeded', 'tryloom'); ?></h4>
                         <p class="tryloom-popup__alert-msg">
                             <?php esc_html_e('You have reached your total allowed try-ons.', 'tryloom'); ?></p>
                         <p class="tryloom-popup__reset-time">
                             <?php esc_html_e('Usage resets:', 'tryloom'); ?> <span></span>
                         </p>
-                        <a href="#" class="tryloom-popup__upsell-btn button alt tryloom-popup__reset-btn">
+                        <a href="#" class="tryloom-popup__upsell-btn button alt tryloom-popup__reset-btn" target="_blank" rel="noopener noreferrer">
                             <?php esc_html_e('Upgrade Plan', 'tryloom'); ?>
                         </a>
                     </div>

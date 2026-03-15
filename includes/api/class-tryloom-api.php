@@ -1,8 +1,8 @@
 <?php
 /**
- * WooCommerce Try On API.
+ * TryLoom API.
  *
- * @package WooCommerce_Try_On
+ * @package TryLoom
  */
 
 // Exit if accessed directly.
@@ -171,7 +171,7 @@ class Tryloom_API
 		if (is_wp_error($response)) {
 			if ('yes' === get_option('tryloom_enable_logging', 'no')) {
 				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-				error_log('[WooCommerce Try On] Image Fetch WP_Error: ' . $response->get_error_message() . ' for URL: ' . $url);
+				error_log('[TryLoom] Image Fetch WP_Error: ' . $response->get_error_message() . ' for URL: ' . $url);
 			}
 			return new WP_Error('image_fetch_error', __('Could not fetch image from URL.', 'tryloom') . ' ' . $response->get_error_message());
 		}
@@ -216,7 +216,7 @@ class Tryloom_API
 			// Log a notice if still missing
 			if ('yes' === get_option('tryloom_enable_logging', 'no')) {
 				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-				error_log('[WooCommerce Try On] API Notice: Platform key is not set (paid or free).');
+				error_log('[TryLoom] API Notice: Platform key is not set (paid or free).');
 			}
 		}
 
@@ -269,7 +269,7 @@ class Tryloom_API
 		if (is_wp_error($response)) {
 			if ('yes' === get_option('tryloom_enable_logging', 'no')) {
 				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-				error_log('[WooCommerce Try On] API Request Error: ' . $response->get_error_message());
+				error_log('[TryLoom] API Request Error: ' . $response->get_error_message());
 			}
 			return $response;
 		}
@@ -289,7 +289,7 @@ class Tryloom_API
 
 				if ('yes' === get_option('tryloom_enable_logging', 'no')) {
 					// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-					error_log('[WooCommerce Try On] Free Trial Ended');
+					error_log('[TryLoom] Free Trial Ended');
 				}
 
 				return new WP_Error('free_trial_ended', __('Free Trial Ended', 'tryloom'));
@@ -304,7 +304,7 @@ class Tryloom_API
 
 					if ('yes' === get_option('tryloom_enable_logging', 'no')) {
 						// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-						error_log('[WooCommerce Try On] Free Trial activation failed.');
+						error_log('[TryLoom] Free Trial activation failed.');
 					}
 
 					return new WP_Error('free_trial_activation_failed', __('Free Trial activation failed.', 'tryloom'));
@@ -313,7 +313,7 @@ class Tryloom_API
 				// When a free platform key already exists, surface a generic error and avoid persistent notices.
 				if ('yes' === get_option('tryloom_enable_logging', 'no')) {
 					// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-					error_log('[WooCommerce Try On] Free Trial activation failed notice suppressed because a free platform key is present.');
+					error_log('[TryLoom] Free Trial activation failed notice suppressed because a free platform key is present.');
 				}
 
 				$error_message = __('Service temporarily unavailable. Please try again.', 'tryloom');
@@ -322,7 +322,7 @@ class Tryloom_API
 			// Generic error handling
 			if ('yes' === get_option('tryloom_enable_logging', 'no')) {
 				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-				error_log('[WooCommerce Try On] API Response Error: ' . $error_message);
+				error_log('[TryLoom] API Response Error: ' . $error_message);
 			}
 
 			return new WP_Error('try_on_api_error', $error_message, array('body' => $response_body));
@@ -332,7 +332,7 @@ class Tryloom_API
 		if ($response_code !== 200 || !isset($response_data['image']) || empty($response_data['image'])) {
 			if ('yes' === get_option('tryloom_enable_logging', 'no')) {
 				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-				error_log('[WooCommerce Try On] API Response Error: (' . $response_code . ') Body: ' . (is_string($response_body) ? substr($response_body, 0, 200) : ''));
+				error_log('[TryLoom] API Response Error: (' . $response_code . ') Body: ' . (is_string($response_body) ? substr($response_body, 0, 200) : ''));
 			}
 			return new WP_Error('try_on_api_error', __('Failed to get try-on image from API.', 'tryloom'), array('body' => $response_body));
 		}
@@ -521,7 +521,7 @@ class Tryloom_API
 			// Log error but don't stop future checks, just wait for next cron
 			if ('yes' === get_option('tryloom_enable_logging', 'no')) {
 				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-				error_log('[WooCommerce Try On] Status Check Error: ' . $response->get_error_message());
+				error_log('[TryLoom] Status Check Error: ' . $response->get_error_message());
 			}
 			return;
 		}
@@ -551,7 +551,7 @@ class Tryloom_API
 
 				if ('yes' === get_option('tryloom_enable_logging', 'no')) {
 					// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Controlled by logging setting
-					error_log('[WooCommerce Try On] Status Check: Plan is active. Usage updated.');
+					error_log('[TryLoom] Status Check: Plan is active. Usage updated.');
 				}
 			} else {
 				// Plan is inactive/limit exceeded

@@ -418,7 +418,7 @@ msgid "Another plugin is hooking into Try On AJAX actions. This may cause functi
 msgstr ""
 
 #: includes/admin/class-tryloom-admin.php:1121
-msgid "WooCommerce Try On - Potential Conflicts Detected:"
+msgid "TryLoom - Potential Conflicts Detected:"
 msgstr ""
 
 #: includes/admin/class-tryloom-admin.php:1127

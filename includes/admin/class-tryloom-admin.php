@@ -1,8 +1,8 @@
 <?php
 /**
- * WooCommerce Try On Admin.
+ * TryLoom Admin.
  *
- * @package WooCommerce_Try_On
+ * @package TryLoom
  */
 
 // Exit if accessed directly.
@@ -139,6 +139,9 @@ class Tryloom_Admin
 		register_setting('tryloom-settings-group-advanced', 'tryloom_show_popup_errors', array('sanitize_callback' => 'sanitize_text_field', 'capability' => 'manage_options'));
 		register_setting('tryloom-settings-group-advanced', 'tryloom_admin_user_roles', array('sanitize_callback' => array($this, 'sanitize_array'), 'capability' => 'manage_options'));
 		register_setting('tryloom-settings-group-advanced', 'tryloom_remove_data_on_delete', array('sanitize_callback' => 'sanitize_text_field', 'capability' => 'manage_options'));
+		register_setting('tryloom-settings-group-advanced', 'tryloom_turnstile_enabled', array('sanitize_callback' => 'sanitize_text_field', 'capability' => 'manage_options'));
+		register_setting('tryloom-settings-group-advanced', 'tryloom_turnstile_site_key', array('sanitize_callback' => 'sanitize_text_field', 'capability' => 'manage_options'));
+		register_setting('tryloom-settings-group-advanced', 'tryloom_turnstile_secret_key', array('sanitize_callback' => 'sanitize_text_field', 'capability' => 'manage_options'));
 
 		// General Settings Field Callbacks
 		add_settings_field('tryloom_platform_key', __('Platform Key', 'tryloom'), array($this, 'platform_key_callback'), 'tryloom-settings-general', 'tryloom_general_section');
@@ -167,12 +170,16 @@ class Tryloom_Admin
 		add_settings_field('tryloom_save_photos', __('Save User Photos', 'tryloom'), array($this, 'save_photos_callback'), 'tryloom-settings-privacy', 'tryloom_privacy_section');
 		add_settings_field('tryloom_delete_photos_days', __('Delete Photos After (Days)', 'tryloom'), array($this, 'delete_photos_days_callback'), 'tryloom-settings-privacy', 'tryloom_privacy_section');
 		add_settings_field('tryloom_enable_history', __('Enable History', 'tryloom'), array($this, 'enable_history_callback'), 'tryloom-settings-privacy', 'tryloom_privacy_section');
+		add_settings_field('tryloom_privacy_policy_statement', __('Privacy Policy Statement', 'tryloom'), array($this, 'privacy_policy_statement_callback'), 'tryloom-settings-privacy', 'tryloom_privacy_section');
 
 		// Advanced Settings Field Callbacks
 		add_settings_field('tryloom_enable_logging', __('Enable Logging', 'tryloom'), array($this, 'enable_logging_callback'), 'tryloom-settings-advanced', 'tryloom_advanced_section');
 		add_settings_field('tryloom_show_popup_errors', __('Show Browser Popup Errors', 'tryloom'), array($this, 'show_popup_errors_callback'), 'tryloom-settings-advanced', 'tryloom_advanced_section');
 		add_settings_field('tryloom_admin_user_roles', __('Admin Access Roles', 'tryloom'), array($this, 'admin_user_roles_callback'), 'tryloom-settings-advanced', 'tryloom_advanced_section');
 		add_settings_field('tryloom_remove_data_on_delete', __('Remove Data on Uninstall', 'tryloom'), array($this, 'remove_data_on_delete_callback'), 'tryloom-settings-advanced', 'tryloom_advanced_section');
+		add_settings_field('tryloom_turnstile_enabled', __('Enable Cloudflare Turnstile', 'tryloom'), array($this, 'turnstile_enabled_callback'), 'tryloom-settings-advanced', 'tryloom_advanced_section');
+		add_settings_field('tryloom_turnstile_site_key', __('Turnstile Site Key', 'tryloom'), array($this, 'turnstile_site_key_callback'), 'tryloom-settings-advanced', 'tryloom_advanced_section');
+		add_settings_field('tryloom_turnstile_secret_key', __('Turnstile Secret Key', 'tryloom'), array($this, 'turnstile_secret_key_callback'), 'tryloom-settings-advanced', 'tryloom_advanced_section');
 	}
 
 	/**
@@ -368,8 +375,8 @@ class Tryloom_Admin
 		<div class="tryloom-radio-group">
 			<label class="tryloom-radio-label">
 				<input type="radio" name="tryloom_try_on_method" value="auto" <?php checked($value, 'auto'); ?>>
-				<?php esc_html_e('Auto', 'tryloom'); ?>
 				<span class="tryloom-admin__help-tip">
+					<?php esc_html_e('Auto', 'tryloom'); ?>
 					<span class="tryloom-admin__tooltip-content">
 						<?php esc_html_e('Smart AI automatically selects the best mode for customer photo to ensure quality and usability.', 'tryloom'); ?>
 						<br><a href="https://gettryloom.com/studio-vs-try-on-mode-guide/"
@@ -380,10 +387,10 @@ class Tryloom_Admin
 
 			<label class="tryloom-radio-label">
 				<input type="radio" name="tryloom_try_on_method" value="tryon" <?php checked($value, 'tryon'); ?>>
-				<?php esc_html_e('Try-On', 'tryloom'); ?>
 				<span class="tryloom-admin__help-tip">
+					<?php esc_html_e('Try-On', 'tryloom'); ?>
 					<span class="tryloom-admin__tooltip-content">
-						<?php esc_html_e('Fastest option. Creates high-quality, studio-lit images with professional lighting and background.', 'tryloom'); ?>
+						<?php esc_html_e('Maximum realism. Preserves exact facial features, fabric textures and background.', 'tryloom'); ?>
 						<br><a href="https://gettryloom.com/studio-vs-try-on-mode-guide/"
 							target="_blank"><?php esc_html_e('Learn more', 'tryloom'); ?></a>
 					</span>
@@ -392,10 +399,10 @@ class Tryloom_Admin
 
 			<label class="tryloom-radio-label">
 				<input type="radio" name="tryloom_try_on_method" value="studio" <?php checked($value, 'studio'); ?>>
-				<?php esc_html_e('Studio', 'tryloom'); ?>
 				<span class="tryloom-admin__help-tip">
+					<?php esc_html_e('Studio', 'tryloom'); ?>
 					<span class="tryloom-admin__tooltip-content">
-						<?php esc_html_e('Maximum realism. Preserves exact facial features, fabric textures and background.', 'tryloom'); ?>
+						<?php esc_html_e('Fastest option. Creates high-quality, studio-lit images with professional lighting and background.', 'tryloom'); ?>
 						<br><a href="https://gettryloom.com/studio-vs-try-on-mode-guide/"
 							target="_blank"><?php esc_html_e('Learn more', 'tryloom'); ?></a>
 					</span>
@@ -539,6 +546,77 @@ class Tryloom_Admin
 	}
 
 
+
+	/**
+	 * Privacy Policy Statement callback.
+	 * Generates a suggested privacy policy text based on Save Photos and Enable History settings.
+	 */
+	public function privacy_policy_statement_callback()
+	{
+		$save_photos = get_option('tryloom_save_photos', 'yes');
+		$enable_history = get_option('tryloom_enable_history', 'yes');
+
+		$base_text = __('To provide our Virtual Try-On service, we securely transmit the photos you upload to a third-party Artificial Intelligence (AI) service provider. This provider processes your image transiently solely to generate the try-on result. Your photos are not retained by the AI provider, nor are they used to train any AI models.', 'tryloom');
+
+		$scenario_a = __('To improve your shopping experience, we securely store your uploaded photos and generated try-on images on our servers. This allows you to quickly try on items and view your Try-On history. You can manage or delete your saved images at any time through your My Account dashboard.', 'tryloom');
+		$scenario_b = __('We adhere to a strict minimal-retention policy on our servers. Your original uploaded photos are deleted immediately after processing, and the generated try-on images are automatically and permanently deleted from our servers shortly after your session is complete.', 'tryloom');
+		$scenario_c = __('We securely store your original uploaded photos on our servers to streamline your future try-on sessions. However, your Try-On history is not tracked, and the generated try-on result images are automatically deleted from our servers shortly after your session is complete.', 'tryloom');
+		$scenario_d = __('Your original uploaded photos are processed securely and deleted immediately. However, to allow you to view your Try-On history, the final generated try-on images are securely stored on our servers. You can manage or delete these generated images at any time through your My Account dashboard.', 'tryloom');
+
+		// Determine initial dynamic text based on current settings.
+		if ($save_photos === 'yes' && $enable_history === 'yes') {
+			$dynamic_text = $scenario_a;
+		} elseif ($save_photos === 'no' && $enable_history === 'no') {
+			$dynamic_text = $scenario_b;
+		} elseif ($save_photos === 'yes' && $enable_history === 'no') {
+			$dynamic_text = $scenario_c;
+		} else {
+			$dynamic_text = $scenario_d; // Save OFF, History ON
+		}
+		?>
+		<div class="tryloom-admin__privacy-statement" style="max-width: 700px;">
+			<p class="description" style="margin-bottom: 8px;">
+				<?php esc_html_e('Please add the following statement to your store\'s official Privacy Policy page:', 'tryloom'); ?>
+			</p>
+			<textarea id="tryloom_privacy_statement_textarea" rows="12" class="large-text code" readonly
+				style="background:#f9f9f9; cursor: text; color: #333;"><?php echo esc_textarea($base_text . "\n\n" . $dynamic_text); ?></textarea>
+			<p class="description" style="margin-top: 6px;">
+				<?php esc_html_e('This text updates automatically based on your "Save User Photos" and "Enable History" settings above.', 'tryloom'); ?>
+			</p>
+		</div>
+		<script type="text/javascript">
+			(function ($) {
+				var baseText = <?php echo wp_json_encode($base_text); ?>;
+				var scenarioA = <?php echo wp_json_encode($scenario_a); ?>;
+				var scenarioB = <?php echo wp_json_encode($scenario_b); ?>;
+				var scenarioC = <?php echo wp_json_encode($scenario_c); ?>;
+				var scenarioD = <?php echo wp_json_encode($scenario_d); ?>;
+
+				function updatePrivacyStatement() {
+					var savePhotos = $('[name="tryloom_save_photos"]').val();
+					var enableHistory = $('[name="tryloom_enable_history"]').val();
+					var dynamicText;
+
+					if (savePhotos === 'yes' && enableHistory === 'yes') {
+						dynamicText = scenarioA;
+					} else if (savePhotos === 'no' && enableHistory === 'no') {
+						dynamicText = scenarioB;
+					} else if (savePhotos === 'yes' && enableHistory === 'no') {
+						dynamicText = scenarioC;
+					} else {
+						dynamicText = scenarioD;
+					}
+
+					$('#tryloom_privacy_statement_textarea').val(baseText + '\n\n' + dynamicText);
+				}
+
+				$(document).ready(function () {
+					$('[name="tryloom_save_photos"], [name="tryloom_enable_history"]').on('change', updatePrivacyStatement);
+				});
+			}(jQuery));
+		</script>
+		<?php
+	}
 
 	/**
 	 * Save photos callback.
@@ -748,6 +826,59 @@ class Tryloom_Admin
 	}
 
 	/**
+	 * Turnstile enabled callback.
+	 */
+	public function turnstile_enabled_callback()
+	{
+		$turnstile_enabled = get_option('tryloom_turnstile_enabled', 'no');
+		?>
+		<select name="tryloom_turnstile_enabled">
+			<option value="yes" <?php selected($turnstile_enabled, 'yes'); ?>><?php esc_html_e('Yes', 'tryloom'); ?></option>
+			<option value="no" <?php selected($turnstile_enabled, 'no'); ?>><?php esc_html_e('No', 'tryloom'); ?></option>
+		</select>
+		<p class="description">
+			<?php esc_html_e('Enable Cloudflare Turnstile to block bots from exploiting virtual try-on limits.', 'tryloom'); ?>
+		</p>
+		<?php
+	}
+
+	/**
+	 * Turnstile site key callback.
+	 */
+	public function turnstile_site_key_callback()
+	{
+		$site_key = get_option('tryloom_turnstile_site_key', '');
+		?>
+		<input type="text" name="tryloom_turnstile_site_key" value="<?php echo esc_attr($site_key); ?>" class="regular-text" />
+		<p class="description">
+			<?php esc_html_e('Your Cloudflare Turnstile Site Key.', 'tryloom'); ?>
+		</p>
+		<?php
+	}
+
+	/**
+	 * Turnstile secret key callback.
+	 */
+	public function turnstile_secret_key_callback()
+	{
+		$secret_key = get_option('tryloom_turnstile_secret_key', '');
+		?>
+		<input type="text" name="tryloom_turnstile_secret_key" value="<?php echo esc_attr($secret_key); ?>"
+			class="regular-text" />
+		<p class="description">
+			<?php esc_html_e('Your Cloudflare Turnstile Secret Key.', 'tryloom'); ?><br>
+			<strong><?php esc_html_e('Tip:', 'tryloom'); ?></strong>
+			<?php esc_html_e('When creating your Turnstile widget in Cloudflare, we highly recommend choosing "Managed" mode so it doesn\'t interrupt your real shoppers.', 'tryloom'); ?><br>
+			<?php
+			echo wp_kses_post(
+				__('Don\'t have these keys? <a href="https://gettryloom.com/cloudflare-turnstile-setup-for-woocommerce/" target="_blank">Click here to read our 3-minute guide</a> on how to get your free Cloudflare Turnstile keys.', 'tryloom')
+			);
+			?>
+		</p>
+		<?php
+	}
+
+	/**
 	 * Custom popup CSS callback.
 	 */
 	public function custom_popup_css_callback()
@@ -818,8 +949,7 @@ class Tryloom_Admin
 		</select>
 		<p class="description">
 			<?php esc_html_e('Enable or disable Try-On history tracking.', 'tryloom'); ?><br>
-			<?php esc_html_e('When off: No history shown, and generated images auto-delete after 5 minutes.', 'tryloom'); ?><br>
-			<strong><?php esc_html_e('Note: Turning this off will also hide the Try-On tab in My Account.', 'tryloom'); ?></strong>
+			<?php esc_html_e('When off: No history shown, generated images auto-delete after 5 minutes and no  Try-On tab in My Account.', 'tryloom'); ?><br>
 		</p>
 		<div class="tryloom-admin__settings-desc-box">
 			<button type="button" id="tryloom_clear_history_btn" class="button button-secondary" <?php echo !$has_history ? 'disabled' : ''; ?>>
@@ -1116,7 +1246,7 @@ class Tryloom_Admin
 		// Display warnings if conflicts detected.
 		if (!empty($conflicts)) {
 			echo '<div class="notice notice-warning is-dismissible">';
-			echo '<p><strong>' . esc_html__('WooCommerce Try On - Potential Conflicts Detected:', 'tryloom') . '</strong></p>';
+			echo '<p><strong>' . esc_html__('TryLoom - Potential Conflicts Detected:', 'tryloom') . '</strong></p>';
 			echo '<ul class="tryloom-admin__shortcode-list">';
 			foreach ($conflicts as $conflict) {
 				echo '<li>' . esc_html($conflict) . '</li>';
@@ -1359,6 +1489,7 @@ class Tryloom_Admin
 		);
 		?>
 		<div id="tryloom-admin-wrap" class="wrap tryloom-admin">
+
 			<h1 class="tryloom-admin__title">
 				<?php esc_html_e('TryLoom Settings  - AI Virtual Try On for WooCommerce', 'tryloom'); ?>
 			</h1>

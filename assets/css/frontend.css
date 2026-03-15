@@ -1,7 +1,7 @@
 /**
- * WooCommerce Try On Frontend CSS.
+ * TryLoom Frontend CSS.
  *
- * @package WooCommerce_Try_On
+ * @package TryLoom
  */
 
 /**
@@ -365,6 +365,20 @@ body.tryloom-scroll-lock {
     justify-content: center;
     align-items: center;
     width: 100%;
+}
+
+/*
+ * Step 2: removed from grid flow so it NEVER inflates the popup height.
+ * It sits absolutely over the body (which is position:relative),
+ * filling exactly the same space as the other steps.
+ */
+#tryloom-popup-wrap .tryloom-popup__step--2 {
+    position: absolute;
+    inset: 0;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    min-height: 0;
+    /* grid-area is irrelevant now, but kept for clarity */
 }
 
 #tryloom-popup-wrap .tryloom-popup__upload-section {
@@ -856,13 +870,18 @@ body.tryloom-scroll-lock {
     align-items: center;
     justify-content: center;
     width: 100%;
+    /* fill all space the absolute step 2 provides, minus actions bar */
     flex: 1;
+    min-height: 0;
+    overflow: hidden;
 }
 
 #tryloom-popup-wrap .tryloom-popup__result-image-wrapper {
-    margin-bottom: 30px;
+    /* fill all of .result's remaining height after actions */
+    flex: 1;
+    min-height: 0;
     width: 100%;
-    max-width: 500px;
+    max-width: 600px;
     padding: 15px;
     background: var(--tryloom-result-bg);
     border-radius: 16px;
@@ -871,14 +890,16 @@ body.tryloom-scroll-lock {
     justify-content: center;
     align-items: center;
     position: relative;
-    min-height: 300px;
     margin-left: auto;
     margin-right: auto;
+    overflow: hidden;
+    box-sizing: border-box;
 }
 
 #tryloom-popup-wrap .tryloom-popup__result-image-wrapper img.tryloom-popup__result-image {
     max-width: 100%;
-    max-height: 450px;
+    max-height: 100%;
+    /* constrained by wrapper which is constrained by the abs step */
     object-fit: contain;
     border-radius: 12px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);

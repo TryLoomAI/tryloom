@@ -2,7 +2,7 @@
 /**
  * Try On Popup Template.
  *
- * @package WooCommerce_Try_On
+ * @package TryLoom
  */
 
 defined('ABSPATH') || exit;
@@ -80,6 +80,19 @@ if (!isset($default_photo_url)) {
                         </div>
                     <?php endif; ?>
 
+                    <?php 
+                    // Render Cloudflare Turnstile if enabled
+                    $turnstile_enabled = get_option('tryloom_turnstile_enabled', 'no');
+                    if ('yes' === $turnstile_enabled) {
+                        $site_key = get_option('tryloom_turnstile_site_key', '');
+                        if (!empty($site_key)) {
+                            echo '<div class="tryloom-turnstile-container" style="margin-top: 15px; margin-bottom: 5px; display: flex; justify-content: center;">';
+                            echo '<div class="cf-turnstile" data-sitekey="' . esc_attr($site_key) . '" data-theme="auto" data-size="flexible"></div>';
+                            echo '</div>';
+                        }
+                    }
+                    ?>
+                    
                     <div class="tryloom-popup__actions">
                         <?php
                         // Get Add to Cart button classes.

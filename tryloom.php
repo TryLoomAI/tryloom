@@ -16,7 +16,7 @@
  * WC requires at least: 5.0
  * WC tested up to: 10.3
  *
- * @package WooCommerce_Try_On
+ * @package TryLoom
  */
 
 // Exit if accessed directly.

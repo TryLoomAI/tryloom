@@ -1,7 +1,7 @@
 /**
- * WooCommerce Try On Admin JavaScript.
+ * TryLoom Admin JavaScript.
  *
- * @package WooCommerce_Try_On
+ * @package TryLoom
  */
 
 (function ($) {

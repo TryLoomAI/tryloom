@@ -132,29 +132,24 @@
 /* Tooltip Styles */
 #tryloom-admin-wrap .tryloom-admin__help-tip {
     position: relative;
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    width: 16px;
-    height: 16px;
-    background-color: #dcdcde;
-    color: #50575e;
-    border-radius: 50%;
-    font-size: 11px;
-    font-weight: 600;
+    display: inline-block;
     cursor: help;
-    line-height: 1;
-    margin-left: 5px;
-    vertical-align: middle;
+    margin-left: 0;
+    /* Dotted underline to hint it's hoverable */
+    border-bottom: 1px dotted #50575e;
+    line-height: 1.4;
+    vertical-align: baseline;
 }
 
-#tryloom-admin-wrap .tryloom-admin__help-tip::before {
-    content: "?";
+/* No ? icon - tooltip triggers on text hover only */
+#tryloom-admin-wrap .tryloom-admin__help-tip::before,
+#tryloom-admin-wrap .tryloom-admin__help-tip::after {
+    content: none;
 }
 
 #tryloom-admin-wrap .tryloom-admin__tooltip-content {
     visibility: hidden;
-    width: 200px;
+    width: 230px;
     background-color: #1d2327;
     color: #fff;
     text-align: center;
@@ -162,16 +157,20 @@
     padding: 8px 10px;
     position: absolute;
     z-index: 9999;
-    bottom: 135%;
+    bottom: calc(100% + 8px);
     left: 50%;
     transform: translateX(-50%);
     opacity: 0;
-    transition: opacity 0.3s;
+    transition: opacity 0.2s;
     font-size: 12px;
     line-height: 1.4;
     font-weight: normal;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
     pointer-events: none;
+    /* Hover bridge: invisible padding that connects tooltip to the text
+       so moving the mouse upward into the tooltip keeps it open */
+    padding-bottom: 14px;
+    margin-bottom: -6px;
 }
 
 #tryloom-admin-wrap .tryloom-admin__tooltip-content::after {
@@ -180,6 +179,8 @@
     top: 100%;
     left: 50%;
     margin-left: -5px;
+    /* Account for padding-bottom bridge */
+    margin-top: -6px;
     border-width: 5px;
     border-style: solid;
     border-color: #1d2327 transparent transparent transparent;
@@ -188,6 +189,8 @@
 #tryloom-admin-wrap .tryloom-admin__help-tip:hover .tryloom-admin__tooltip-content {
     visibility: visible;
     opacity: 1;
+    pointer-events: auto;
+    /* allow mouse events inside tooltip so links are clickable */
 }
 
 /* Tooltip Link */
@@ -404,6 +407,18 @@
     clear: both;
 }
 
+#tryloom-admin-wrap .tryloom-radio-group {
+    display: flex;
+    gap: 25px;
+    margin: 10px 0;
+    align-items: center;
+}
+
+#tryloom-admin-wrap .tryloom-radio-label {
+    align-items: center;
+    cursor: pointer;
+}
+
 #tryloom-admin-wrap .tryloom-admin__usage-flex {
     justify-content: space-between;
     width: 100%;
@@ -452,28 +467,25 @@
     height: auto;
 }
 
-/* Tooltips */
+/* Second tooltip block - override/reset to match above */
 #tryloom-admin-wrap .tryloom-admin__help-tip {
     display: inline-block;
-    margin-left: 5px;
-    color: #646970;
+    margin-left: 0;
+    color: inherit;
     cursor: help;
     position: relative;
-    font-size: 0;
+    font-size: inherit;
+    border-bottom: 1px dotted #50575e;
 }
 
 #tryloom-admin-wrap .tryloom-admin__help-tip::after {
-    content: "\f223";
-    /* Dashicons help icon */
-    font-family: dashicons;
-    font-size: 16px;
-    vertical-align: middle;
+    content: none;
 }
 
 #tryloom-admin-wrap .tryloom-admin__tooltip-content {
     display: none;
     position: absolute;
-    bottom: 100%;
+    bottom: calc(100% + 8px);
     left: 50%;
     transform: translateX(-50%);
     background: #1e1e1e;
@@ -486,9 +498,12 @@
     width: max-content;
     max-width: 250px;
     z-index: 10000;
-    margin-bottom: 8px;
     font-weight: normal;
     text-align: center;
+    /* Hover bridge so mouse can travel into tooltip without it closing */
+    padding-bottom: 16px;
+    margin-bottom: -8px;
+    pointer-events: none;
 }
 
 #tryloom-admin-wrap .tryloom-admin__tooltip-content::after {
@@ -497,6 +512,7 @@
     top: 100%;
     left: 50%;
     transform: translateX(-50%);
+    margin-top: -8px;
     border-width: 6px;
     border-style: solid;
     border-color: #1e1e1e transparent transparent transparent;
@@ -504,4 +520,5 @@
 
 #tryloom-admin-wrap .tryloom-admin__help-tip:hover .tryloom-admin__tooltip-content {
     display: block;
+    pointer-events: auto;
 }

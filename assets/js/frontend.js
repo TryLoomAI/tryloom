@@ -1,7 +1,7 @@
 /**
- * WooCommerce Try On Frontend JavaScript.
+ * TryLoom Frontend JavaScript.
  *
- * @package WooCommerce_Try_On
+ * @package TryLoom
  */
 
 (function ($) {
@@ -19,7 +19,7 @@
 				alert(message);
 			} else {
 				// Log to console instead if popup errors are disabled
-				console.error('[WooCommerce Try On]', message);
+				console.error('[TryLoom]', message);
 			}
 		},
 
@@ -1290,6 +1290,13 @@
 				variation_id: variationId
 			};
 
+			if (tryloom_params.turnstile_enabled === 'yes') {
+				var turnstileToken = $('[name="cf-turnstile-response"]').val();
+				if (turnstileToken) {
+					data['cf-turnstile-response'] = turnstileToken;
+				}
+			}
+
 			if (TryloomUI.uploadedFileURL && TryloomUI.uploadedFileURL.length > 0) {
 				data.uploaded_file_url = TryloomUI.uploadedFileURL;
 			} else {
@@ -1337,11 +1344,15 @@
 								.data('product-id', response.data.product_id)
 								.data('variation-id', response.data.variation_id);
 
-							// Show step 2.
 							TryloomUI.showStep(2);
 
 							// Toggle result view
 							TryloomUI.displayResultImage(response.data.image_url, response.data.filename, {});
+							
+							// Reset Turnstile token so user can generate again if they want
+							if (tryloom_params.turnstile_enabled === 'yes' && typeof turnstile !== 'undefined') {
+								turnstile.reset();
+							}
 
 						}, 800); // Wait for 100% animation
 					} else {
@@ -1379,6 +1390,11 @@
 							var errorMsg = (response.data && response.data.message) ? response.data.message : tryloom_params.i18n.error;
 							TryloomUI.showErrorPopup(errorMsg);
 						}
+						
+						// Reset Turnstile token on error so user can immediately retry
+						if (tryloom_params.turnstile_enabled === 'yes' && typeof turnstile !== 'undefined') {
+							turnstile.reset();
+						}
 					}
 				},
 				error: function (xhr, status, error) {
@@ -1399,6 +1415,11 @@
 						TryloomUI.showErrorPopup('Request timed out. Please try again.');
 					} else {
 						TryloomUI.showErrorPopup(tryloom_params.i18n.error);
+					}
+					
+					// Reset Turnstile token on error so user can immediately retry
+					if (tryloom_params.turnstile_enabled === 'yes' && typeof turnstile !== 'undefined') {
+						turnstile.reset();
 					}
 				}
 			});

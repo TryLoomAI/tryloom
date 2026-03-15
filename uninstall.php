@@ -4,7 +4,7 @@
  *
  * Uninstalling TryLoom deletes user tables and options.
  *
- * @package WooCommerce_Try_On
+ * @package TryLoom
  */
 
 if (!defined('WP_UNINSTALL_PLUGIN')) {

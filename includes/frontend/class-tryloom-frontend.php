@@ -1,8 +1,8 @@
 <?php
 /**
- * WooCommerce Try On Frontend.
+ * TryLoom Frontend.
  *
- * @package WooCommerce_Try_On
+ * @package TryLoom
  */
 
 // Exit if accessed directly.
@@ -552,6 +552,16 @@ class Tryloom_Frontend
 			true
 		);
 
+		// Get Turnstile settings
+		$turnstile_enabled = get_option('tryloom_turnstile_enabled', 'no');
+		$turnstile_site_key = get_option('tryloom_turnstile_site_key', '');
+
+		// Enqueue Cloudflare Turnstile if enabled.
+		if ('yes' === $turnstile_enabled && !empty($turnstile_site_key)) {
+			// Explicitly load synchronous API with explicit render callback per best practice
+			wp_enqueue_script('cloudflare-turnstile', 'https://challenges.cloudflare.com/turnstile/v0/api.js', array(), null, false);
+		}
+
 		// Localize script.
 		wp_localize_script(
 			'tryloom-frontend',
@@ -563,6 +573,8 @@ class Tryloom_Frontend
 				'show_popup_errors' => get_option('tryloom_show_popup_errors', 'no') === 'yes',
 				'save_photos_setting' => get_option('tryloom_save_photos', 'yes'),
 				'hide_variations' => get_option('tryloom_hide_variations', 'no') === 'yes',
+				'turnstile_enabled' => $turnstile_enabled,
+				'turnstile_site_key' => $turnstile_site_key,
 				'plugin_url' => TRYLOOM_PLUGIN_URL,
 				'store_name' => get_bloginfo('name'),
 				'i18n' => array(
@@ -861,6 +873,49 @@ class Tryloom_Frontend
 			// Check if required parameters are set.
 			if (!isset($_POST['product_id'])) {
 				wp_send_json_error(array('message' => __('Missing product ID.', 'tryloom')));
+			}
+
+			// Validate Cloudflare Turnstile token if enabled.
+			$turnstile_enabled = get_option('tryloom_turnstile_enabled', 'no');
+			if ('yes' === $turnstile_enabled) {
+				$secret_key = get_option('tryloom_turnstile_secret_key', '');
+				
+				// Extract the hyphenated payload
+				$token = isset($_POST['cf-turnstile-response']) ? sanitize_text_field(wp_unslash($_POST['cf-turnstile-response'])) : '';
+				
+				if (empty($token)) {
+					wp_send_json_error(array('message' => __('Security check failed. Please refresh and try again. (Missing Turnstile Token)', 'tryloom'), 'error_code' => 'turnstile_missing'));
+				}
+				
+				// Verify token with Cloudflare
+				$verify_response = wp_remote_post('https://challenges.cloudflare.com/turnstile/v0/siteverify', array(
+					'body' => array(
+						'secret'   => $secret_key,
+						'response' => $token,
+						// Optional: Pass remote IP if available via $_SERVER['REMOTE_ADDR']
+					),
+					'timeout' => 10,
+				));
+				
+				if (is_wp_error($verify_response)) {
+					// Fallback open if Cloudflare is down to avoid completely blocking sales? 
+					// For security products, standard is usually fail-closed, but let's log it.
+					if ('yes' === get_option('tryloom_enable_logging', 'no')) {
+						error_log('[TryLoom] Turnstile Validation Exception: ' . $verify_response->get_error_message());
+					}
+					wp_send_json_error(array('message' => __('Security verification service is temporarily unreachable.', 'tryloom')));
+				}
+				
+				$body = wp_remote_retrieve_body($verify_response);
+				$data = json_decode($body);
+				
+				if (!$data || !isset($data->success) || !$data->success) {
+					// Add specific logging for failure to help merchants
+					if ('yes' === get_option('tryloom_enable_logging', 'no')) {
+						error_log('[TryLoom] Turnstile Token Rejected: ' . print_r($data->{'error-codes'}, true));
+					}
+					wp_send_json_error(array('message' => __('Security verification failed. Are you a robot?', 'tryloom'), 'error_code' => 'turnstile_rejected'));
+				}
 			}
 
 			// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified above
@@ -1162,7 +1217,7 @@ class Tryloom_Frontend
 					$generated_image_url
 				);
 				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-				error_log('[WooCommerce Try On] ' . $log_message);
+				error_log('[TryLoom] ' . $log_message);
 			}
 
 			// Increment usage limit after a successful generation
@@ -1192,7 +1247,7 @@ class Tryloom_Frontend
 			// Log the error
 			if ('yes' === get_option('tryloom_enable_logging', 'no')) {
 				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Controlled by logging setting
-				error_log('[WooCommerce Try On] Critical Error in Generation: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
+				error_log('[TryLoom] Critical Error in Generation: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
 			}
 
 			wp_send_json_error(array(

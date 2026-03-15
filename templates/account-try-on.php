@@ -2,7 +2,7 @@
 /**
  * Account Try On Tab Template.
  *
- * @package WooCommerce_Try_On
+ * @package TryLoom
  */
 
 defined('ABSPATH') || exit;

@@ -314,6 +314,7 @@ body.tryloom-scroll-lock {
     padding: 30px;
     overflow-y: auto;
     flex: 1;
+    min-height: 0;
     position: relative;
     display: grid;
 }
@@ -373,7 +374,6 @@ body.tryloom-scroll-lock {
  * filling exactly the same space as the other steps.
  */
 #tryloom-popup-wrap .tryloom-popup__step--2 {
-    position: absolute;
     inset: 0;
     flex-direction: column;
     flex-wrap: nowrap;
@@ -402,6 +402,11 @@ body.tryloom-scroll-lock {
         max-height: 90vh;
         display: flex;
         flex-direction: column;
+    }
+
+    #tryloom-popup-wrap .tryloom-popup__result-image-wrapper {
+        padding: 0 !important;
+        box-shadow: none !important;
     }
 
     #tryloom-popup-wrap .tryloom-popup__header {
@@ -506,6 +511,18 @@ body.tryloom-scroll-lock {
         overflow: hidden !important;
         touch-action: none;
         -webkit-overflow-scrolling: none;
+    }
+
+    /*
+     * Step 2 on mobile: the result-actions bar is position:fixed at the bottom of
+     * the viewport. The step itself is position:absolute and fills the body.
+     * We must shrink the step from the bottom by the actions bar height so the
+     * image never slides under it.
+     * Actions bar: padding 15px top+bottom + ~50px button ≈ 80px.
+     */
+    #tryloom-popup-wrap .tryloom-popup__step--2 {
+        bottom: 80px;
+        /* carve space for fixed actions bar */
     }
 }
 
@@ -757,7 +774,6 @@ body.tryloom-scroll-lock {
     flex-basis: 100%;
     margin-top: 10px;
     text-align: center;
-    width: 100%;
 }
 
 #tryloom-popup-wrap .tryloom-popup__generate-btn,
@@ -870,9 +886,10 @@ body.tryloom-scroll-lock {
     align-items: center;
     justify-content: center;
     width: 100%;
-    /* fill all space the absolute step 2 provides, minus actions bar */
+    /* fill all space the absolute step 2 provides */
     flex: 1;
     min-height: 0;
+    height: 95%;
     overflow: hidden;
 }
 
@@ -880,6 +897,8 @@ body.tryloom-scroll-lock {
     /* fill all of .result's remaining height after actions */
     flex: 1;
     min-height: 0;
+    height: 0;
+    /* forces flex child to not auto-size beyond its flex allocation */
     width: 100%;
     max-width: 600px;
     padding: 15px;
@@ -899,7 +918,8 @@ body.tryloom-scroll-lock {
 #tryloom-popup-wrap .tryloom-popup__result-image-wrapper img.tryloom-popup__result-image {
     max-width: 100%;
     max-height: 100%;
-    /* constrained by wrapper which is constrained by the abs step */
+    width: auto;
+    height: auto;
     object-fit: contain;
     border-radius: 12px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);

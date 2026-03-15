@@ -157,7 +157,7 @@ if (!isset($default_photo_url)) {
                             ?>
                             <button type="button"
                                 class="<?php echo esc_attr($button_classes); ?> tryloom-popup__add-to-cart-btn">
-                                <?php include TRYLOOM_PLUGIN_DIR . 'templates/icons/icon-shopping-cart.php'; ?>
+                                <?php include TRYLOOM_PLUGIN_DIR . 'templates/icons/icon-heart.php'; ?>
                                 <?php esc_html_e('Looks Good', 'tryloom'); ?>
                             </button>
                         </div>

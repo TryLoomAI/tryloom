@@ -375,11 +375,20 @@ class Tryloom_API
 		// Simulate a network delay.
 		sleep(2);
 
-		// In this mock response, we simply return the user's photo as the result.
+		// Get the user photo as base64 to return as mock result
+		$image_base64 = $this->get_base64_from_url($user_photo_url);
+
+		if (is_wp_error($image_base64)) {
+			return $image_base64;
+		}
+
+		// Return format matching process_try_on success
 		return array(
 			'success' => true,
 			'data' => array(
-				'image_url' => $user_photo_url,
+				'image_base64' => $image_base64,
+				'used' => 10,
+				'limit' => 100,
 			),
 		);
 	}
@@ -477,6 +486,11 @@ class Tryloom_API
 				'product_title' => $product_title,
 				'product_variation' => $product_variation,
 			);
+
+			// Developer Mock Mode: If TRYLOOM_MOCK_API is defined, bypass real API call.
+			if (defined('TRYLOOM_MOCK_API') && TRYLOOM_MOCK_API) {
+				return $this->mock_api_response($process_data['user_photo_url'], $process_data['product_image_url']);
+			}
 
 			// Process the try-on request.
 			return $this->process_try_on($process_data);

@@ -127,6 +127,11 @@ class Tryloom_Frontend
 			return $items;
 		}
 
+		// Check if user role is allowed.
+		if (!$this->is_user_allowed()) {
+			return $items;
+		}
+
 		// Add try-on tab as the third menu item.
 		// First, extract the first two items
 		$first_items = array_slice($items, 0, 2, true);
@@ -173,11 +178,7 @@ class Tryloom_Frontend
 		}
 
 		// Check if user role is allowed.
-		$allowed_user_roles = get_option('tryloom_allowed_user_roles', array('customer'));
-		$current_user_roles = wp_get_current_user()->roles;
-
-		// If guest is allowed or user has an allowed role.
-		if (in_array('guest', $allowed_user_roles, true) || (is_user_logged_in() && array_intersect($current_user_roles, $allowed_user_roles))) {
+		if ($this->is_user_allowed()) {
 			// Get settings.
 			$primary_color = get_option('tryloom_primary_color', '#552FBC');
 
@@ -259,11 +260,7 @@ class Tryloom_Frontend
 		}
 
 		// Check if user role is allowed.
-		$allowed_user_roles = get_option('tryloom_allowed_user_roles', array('customer'));
-		$current_user_roles = wp_get_current_user()->roles;
-
-		// If guest is allowed or user has an allowed role.
-		if (!in_array('guest', $allowed_user_roles, true) && is_user_logged_in() && !array_intersect($current_user_roles, $allowed_user_roles)) {
+		if (!$this->is_user_allowed()) {
 			return '';
 		}
 
@@ -290,7 +287,6 @@ class Tryloom_Frontend
 	 */
 	public function add_try_on_popup()
 	{
-
 		// Check if try-on is enabled.
 		if ('yes' !== get_option('tryloom_enabled', 'yes')) {
 			return;
@@ -308,11 +304,7 @@ class Tryloom_Frontend
 		}
 
 		// Check if user role is allowed.
-		$allowed_user_roles = get_option('tryloom_allowed_user_roles', array('customer'));
-		$current_user_roles = wp_get_current_user()->roles;
-
-		// If guest is allowed or user has an allowed role.
-		if (!in_array('guest', $allowed_user_roles, true) && is_user_logged_in() && !array_intersect($current_user_roles, $allowed_user_roles)) {
+		if (!$this->is_user_allowed()) {
 			return;
 		}
 
@@ -352,8 +344,8 @@ class Tryloom_Frontend
 	 */
 	public function try_on_popup_shortcode()
 	{
-		// Check if try-on is enabled.
-		if ('yes' !== get_option('tryloom_enabled', 'yes')) {
+		// Check if user role is allowed.
+		if (!$this->is_user_allowed()) {
 			return '';
 		}
 
@@ -397,6 +389,11 @@ class Tryloom_Frontend
 
 		// Check if user is logged in.
 		if (!is_user_logged_in()) {
+			return;
+		}
+
+		// Check if user role is allowed.
+		if (!$this->is_user_allowed()) {
 			return;
 		}
 
@@ -721,9 +718,9 @@ class Tryloom_Frontend
 			wp_send_json_error(array('message' => __('Try-on feature is disabled.', 'tryloom')));
 		}
 
-		// Check nonce.
-		if (!check_ajax_referer('tryloom', 'nonce', false)) {
-			wp_send_json_error(array('message' => __('Invalid nonce.', 'tryloom')));
+		// Check if user role is allowed.
+		if (!$this->is_user_allowed()) {
+			wp_send_json_error(array('message' => __('You do not have permission to use this feature.', 'tryloom')));
 		}
 
 		// Check if file is uploaded.
@@ -871,6 +868,11 @@ class Tryloom_Frontend
 				wp_send_json_error(array('message' => __('Invalid nonce.', 'tryloom')));
 			}
 
+			// Check if user role is allowed.
+			if (!$this->is_user_allowed()) {
+				wp_send_json_error(array('message' => __('You do not have permission to use this feature.', 'tryloom')));
+			}
+
 			// Check if required parameters are set.
 			if (!isset($_POST['product_id'])) {
 				wp_send_json_error(array('message' => __('Missing product ID.', 'tryloom')));
@@ -880,24 +882,24 @@ class Tryloom_Frontend
 			$turnstile_enabled = get_option('tryloom_turnstile_enabled', 'no');
 			if ('yes' === $turnstile_enabled) {
 				$secret_key = get_option('tryloom_turnstile_secret_key', '');
-
+				
 				// Extract the hyphenated payload
 				$token = isset($_POST['cf-turnstile-response']) ? sanitize_text_field(wp_unslash($_POST['cf-turnstile-response'])) : '';
-
+				
 				if (empty($token)) {
 					wp_send_json_error(array('message' => __('Security check failed. Please refresh and try again. (Missing Turnstile Token)', 'tryloom'), 'error_code' => 'turnstile_missing'));
 				}
-
+				
 				// Verify token with Cloudflare
 				$verify_response = wp_remote_post('https://challenges.cloudflare.com/turnstile/v0/siteverify', array(
 					'body' => array(
-						'secret' => $secret_key,
+						'secret'   => $secret_key,
 						'response' => $token,
 						// Optional: Pass remote IP if available via $_SERVER['REMOTE_ADDR']
 					),
 					'timeout' => 10,
 				));
-
+				
 				if (is_wp_error($verify_response)) {
 					// Fallback open if Cloudflare is down to avoid completely blocking sales? 
 					// For security products, standard is usually fail-closed, but let's log it.
@@ -906,10 +908,10 @@ class Tryloom_Frontend
 					}
 					wp_send_json_error(array('message' => __('Security verification service is temporarily unreachable.', 'tryloom')));
 				}
-
+				
 				$body = wp_remote_retrieve_body($verify_response);
 				$data = json_decode($body);
-
+				
 				if (!$data || !isset($data->success) || !$data->success) {
 					// Add specific logging for failure to help merchants
 					if ('yes' === get_option('tryloom_enable_logging', 'no')) {
@@ -995,7 +997,7 @@ class Tryloom_Frontend
 					case 'hour':
 						// E.g. "2026-02-20 10" (resets at the top of each hour)
 						$current_period_identifier = wp_date('Y-m-d H');
-						$dt->modify('+1 hour')->setTime((int) $dt->format('H'), 0, 0);
+						$dt->modify('+1 hour')->setTime((int)$dt->format('H'), 0, 0);
 						break;
 					case 'day':
 						// E.g. "2026-02-20" (resets at local midnight)
@@ -1014,7 +1016,7 @@ class Tryloom_Frontend
 						break;
 					default:
 						$current_period_identifier = wp_date('Y-m-d H');
-						$dt->modify('+1 hour')->setTime((int) $dt->format('H'), 0, 0);
+						$dt->modify('+1 hour')->setTime((int)$dt->format('H'), 0, 0);
 				}
 				$reset_time_iso = $dt->format('c');
 
@@ -1273,6 +1275,11 @@ class Tryloom_Frontend
 			wp_send_json_error(array('message' => __('Invalid nonce.', 'tryloom')));
 		}
 
+		// Check if user role is allowed.
+		if (!$this->is_user_allowed()) {
+			wp_send_json_error(array('message' => __('You do not have permission to use this feature.', 'tryloom')));
+		}
+
 		// Check if user is logged in.
 		if (!is_user_logged_in()) {
 			wp_send_json_error(array('message' => __('You must be logged in to delete photos.', 'tryloom')));
@@ -1383,6 +1390,11 @@ class Tryloom_Frontend
 			wp_send_json_error(array('message' => __('Invalid nonce.', 'tryloom')));
 		}
 
+		// Check if user role is allowed.
+		if (!$this->is_user_allowed()) {
+			wp_send_json_error(array('message' => __('You do not have permission to use this feature.', 'tryloom')));
+		}
+
 		// Check if user is logged in.
 		if (!is_user_logged_in()) {
 			wp_send_json_error(array('message' => __('You must be logged in to set default photo.', 'tryloom')));
@@ -1464,6 +1476,11 @@ class Tryloom_Frontend
 			wp_send_json_error(array('message' => __('Invalid nonce.', 'tryloom')));
 		}
 
+		// Check if user role is allowed.
+		if (!$this->is_user_allowed()) {
+			wp_send_json_error(array('message' => __('You do not have permission to use this feature.', 'tryloom')));
+		}
+
 		// Check if user is logged in.
 		if (!is_user_logged_in()) {
 			wp_send_json_error(array('message' => __('You must be logged in to delete history.', 'tryloom')));
@@ -1508,6 +1525,11 @@ class Tryloom_Frontend
 		// Check nonce.
 		if (!check_ajax_referer('tryloom', 'nonce', false)) {
 			wp_send_json_error(array('message' => __('Invalid nonce.', 'tryloom')));
+		}
+
+		// Check if user role is allowed.
+		if (!$this->is_user_allowed()) {
+			wp_send_json_error(array('message' => __('You do not have permission to use this feature.', 'tryloom')));
 		}
 
 		// Check if user is logged in.
@@ -1571,6 +1593,11 @@ class Tryloom_Frontend
 		// Check nonce.
 		if (!check_ajax_referer('tryloom', 'nonce', false)) {
 			wp_send_json_error(array('message' => __('Invalid nonce.', 'tryloom')));
+		}
+
+		// Check if user role is allowed.
+		if (!$this->is_user_allowed()) {
+			wp_send_json_error(array('message' => __('You do not have permission to use this feature.', 'tryloom')));
 		}
 
 		// Check if user is logged in.
@@ -1702,6 +1729,11 @@ class Tryloom_Frontend
 		// Check nonce.
 		if (!check_ajax_referer('tryloom', 'nonce', false)) {
 			wp_send_json_error(array('message' => __('Invalid nonce.', 'tryloom')));
+		}
+
+		// Check if user role is allowed.
+		if (!$this->is_user_allowed()) {
+			wp_send_json_error(array('message' => __('You do not have permission to use this feature.', 'tryloom')));
 		}
 
 		// Check if product ID is set.
@@ -1842,6 +1874,11 @@ class Tryloom_Frontend
 			wp_send_json_error(array('message' => __('Invalid nonce.', 'tryloom')));
 		}
 
+		// Check if user role is allowed.
+		if (!$this->is_user_allowed()) {
+			wp_send_json_error(array('message' => __('You do not have permission to use this feature.', 'tryloom')));
+		}
+
 		// Check product ID.
 		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- Nonce verified above
 		if (!isset($_POST['product_id'])) {
@@ -1935,5 +1972,30 @@ class Tryloom_Frontend
 		);
 		$query->set('meta_query', $meta_query);
 		return $query;
+	}
+
+	/**
+	 * Check if the current user (or guest) is allowed to use TryLoom features.
+	 *
+	 * @return bool True if allowed, false otherwise.
+	 */
+	private function is_user_allowed()
+	{
+		// Default allowed roles.
+		$allowed_user_roles = get_option('tryloom_allowed_user_roles', array('customer'));
+
+		// 1. Guest Check.
+		if (!is_user_logged_in()) {
+			return in_array('guest', $allowed_user_roles, true);
+		}
+
+		// 2. Logged-in User Check.
+		$current_user_roles = wp_get_current_user()->roles;
+		if (empty($current_user_roles)) {
+			return false;
+		}
+
+		// Return true if any of the user's roles are in the allowed list.
+		return (bool) array_intersect($current_user_roles, $allowed_user_roles);
 	}
 }

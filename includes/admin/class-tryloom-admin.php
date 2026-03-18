@@ -1606,44 +1606,6 @@ class Tryloom_Admin
 				?>
 			</form>
 
-			<?php if ($active_tab === 'privacy'): ?>
-				<div class="tryloom-admin__bulk-actions"
-					style="margin-top: 30px; padding: 20px; background: #fff; border: 1px solid #ccd0d4; box-shadow: 0 1px 1px rgba(0,0,0,.04);">
-					<h2><?php esc_html_e('Data Management', 'tryloom'); ?></h2>
-					<p><?php esc_html_e('These actions are permanent and cannot be undone.', 'tryloom'); ?></p>
-					<form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>"
-						style="display:inline-block; margin-right: 15px;">
-						<?php wp_nonce_field('tryloom_clear_all_history'); ?>
-						<input type="hidden" name="action" value="tryloom_clear_all_history">
-						<button type="submit" class="button button-secondary"
-							onclick="return confirm('<?php esc_attr_e('Are you sure you want to clear all try-on history? This will delete the database records, but the photos will remain on your server unless you also delete user photos.', 'tryloom'); ?>');">
-							<?php esc_html_e('Clear All History Logs', 'tryloom'); ?>
-						</button>
-					</form>
-					<form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" style="display:inline-block;">
-						<?php wp_nonce_field('tryloom_delete_user_photos'); ?>
-						<input type="hidden" name="action" value="tryloom_delete_user_photos">
-						<button type="submit" class="button button-secondary"
-							onclick="return confirm('<?php esc_attr_e('Are you sure you want to permanently delete all try-on photos uploaded by users? This action cannot be undone.', 'tryloom'); ?>');">
-							<?php esc_html_e('Delete All User Photos', 'tryloom'); ?>
-						</button>
-					</form>
-				</div>
-
-				<div class="tryloom-admin__footer" style="margin-top: 30px;">
-					<h3 class="tryloom-admin__footer-title"><?php esc_html_e('Privacy Policy', 'tryloom'); ?></h3>
-					<p class="tryloom-admin__footer-text">
-						<?php esc_html_e('Please add appropriate privacy statements to your Privacy Policy page.', 'tryloom'); ?>
-					</p>
-					<p class="tryloom-admin__footer-text"><?php esc_html_e('Suggested privacy policy text:', 'tryloom'); ?></p>
-					<blockquote class="tryloom-admin__privacy-quote">
-						<p>
-							<?php esc_html_e('When you use our virtual try-on feature, we may collect and process images you upload for the purpose of showing how products may look when worn. These images may be stored on our server based on your preferences and our settings. You can manage your saved images in your account settings.', 'tryloom'); ?>
-						</p>
-					</blockquote>
-				</div>
-			<?php endif; ?>
-
 		</div> <!-- End #tryloom-admin-wrap -->
 		<?php
 	}

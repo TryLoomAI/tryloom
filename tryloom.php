@@ -3,8 +3,8 @@
  * Plugin Name: TryLoom - Virtual Try On for WooCommerce
  * Plugin URI: https://gettryloom.com/
  * Description: TryLoom lets customers virtually try on clothing, shoes, hats, and eyewear in WooCommerce.
- * Version: 1.4.2
- * Stable tag: 1.4.2
+ * Version: 1.5.0
+ * Stable tag: 1.5.0
  * Author: ToolTeek
  * Author URI: https://toolteek.com/
  * License: GPLv2 or later
@@ -25,7 +25,7 @@ if (!defined('ABSPATH')) {
 }
 
 // Define plugin constants.
-define('TRYLOOM_VERSION', '1.4.3');
+define('TRYLOOM_VERSION', '1.5.0');
 define('TRYLOOM_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('TRYLOOM_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('TRYLOOM_PLUGIN_BASENAME', plugin_basename(__FILE__));

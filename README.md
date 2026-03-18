@@ -3,7 +3,7 @@ Contributors: ToolTeek, dinethchamuditha
 Tags: woocommerce, virtual try-on, product visualization, e-commerce, fashion
 Requires at least: 5.6
 Tested up to: 6.9
-Stable tag: 1.4.2
+Stable tag: 1.5.0
 Requires PHP: 7.2
 WC requires at least: 5.0
 WC tested up to: 10.4
@@ -96,12 +96,13 @@ Yes. Theme color, primary color, and custom CSS options are available in setting
 
 == Changelog ==
 
-= 1.4.2 =
-* New: Integrated Eruda Mobile Console for easy debugging on mobile devices.
-* New: Added Developer Sandbox Mode (via TRYLOOM_API_ENDPOINT and TRYLOOM_STATUS_ENDPOINT).
-* New: Added Mock API Response Mode (via TRYLOOM_MOCK_API) for local testing.
-* Fix: Resolved Popup UI height expansion and alignment "right-shift" bugs on mobile and desktop.
-* UI: Improved Admin Notification placement to appear above the settings page title.
+= 1.5.0 =
+
+* New: Integrated Cloudflare Turnstile for bot protection and spam prevention.
+* New: Added dynamic Privacy Policy note suggestions tailored to your specific image storage configurations.
+* Enhancement: Completely reorganized the admin settings menu into a clean, tabbed interface for a significantly better user experience.
+* Enhancement: Rolled out various frontend UI improvements for a smoother and more polished look.
+* Security: Hardened role-based access restrictions to improve overall site security.
 
 = 1.4.0 =
 
@@ -198,8 +199,8 @@ Yes. Theme color, primary color, and custom CSS options are available in setting
 
 == Upgrade Notice ==
 
-= 1.4.2 =
-Developer & UI Maintenance: Includes internal tools for mobile debugging (Eruda), customizable sandbox API endpoints, and critical layout fixes for the Try-On popup to ensure perfect alignment and stability.
+= 1.5.0 =
+Feature & Security Update: Version 1.5.0 introduces Cloudflare Turnstile for advanced bot protection and hardens role-based security access. We have also reorganized the admin settings into an easy-to-use tabbed interface. We recommend reviewing your settings after updating to configure the new Turnstile bot protection.
 
 = 1.4.0 =
 Major Architecture & Performance Update: This release drastically improves plugin speed by removing heavy CSS libraries and overhauling the database query engine. It introduces a bulletproof BEM CSS architecture to prevent theme styling conflicts, adds a new revenue-driving Upsell screen for users who hit their limits, and enables custom generation limits by user role. Highly recommended for all users to maximize site speed and UI stability.

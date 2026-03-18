@@ -311,7 +311,7 @@ body.tryloom-scroll-lock {
 }
 
 #tryloom-popup-wrap .tryloom-popup__body {
-    padding: 30px;
+    padding: 0;
     overflow-y: auto;
     flex: 1;
     min-height: 0;
@@ -343,6 +343,8 @@ body.tryloom-scroll-lock {
     grid-area: 1 / 1;
     display: flex;
     flex-wrap: wrap;
+    padding: 30px;
+    box-sizing: border-box;
     /* Force 2 columns on desktop, wrap actions to bottom */
     gap: 30px;
     min-height: 480px;
@@ -374,6 +376,7 @@ body.tryloom-scroll-lock {
  * filling exactly the same space as the other steps.
  */
 #tryloom-popup-wrap .tryloom-popup__step--2 {
+    position: absolute;
     inset: 0;
     flex-direction: column;
     flex-wrap: nowrap;
@@ -402,10 +405,11 @@ body.tryloom-scroll-lock {
     }
 
     #tryloom-popup-wrap .tryloom-popup__content {
-        width: 95%;
-        max-height: 90vh;
+        width: 100%;
+        max-height: 90dvh;
         display: flex;
         flex-direction: column;
+        margin: 16px;
     }
 
     #tryloom-popup-wrap .tryloom-popup__result-image-wrapper {
@@ -419,21 +423,20 @@ body.tryloom-scroll-lock {
     }
 
     #tryloom-popup-wrap .tryloom-popup__body {
-        padding: 20px;
-        padding-bottom: 90px;
-        /* Space for fixed button */
+        padding: 0;
+        /* Scrollbar and space for buttons handled in steps */
         flex: 1;
         overflow: hidden;
     }
 
     /* Only the upload screen (step 1) should scroll */
     #tryloom-popup-wrap .tryloom-popup__body:has(.tryloom-popup__step--1.is-active) {
-        overflow-y: auto;
-        overflow-x: hidden;
-        -webkit-overflow-scrolling: touch;
+        overflow: hidden;
     }
 
     #tryloom-popup-wrap .tryloom-popup__step {
+        padding: 20px;
+        padding-bottom: 90px;
         flex-direction: row;
         gap: 20px;
         min-height: 0;
@@ -502,7 +505,8 @@ body.tryloom-scroll-lock {
     }
 
     #tryloom-popup-wrap .tryloom-popup__result-image {
-        padding: 15px;
+        padding: 0px;
+        border-radius: 0px !important;
     }
 
     #tryloom-popup-wrap .tryloom-popup__image-actions {
@@ -524,10 +528,7 @@ body.tryloom-scroll-lock {
      * image never slides under it.
      * Actions bar: padding 15px top+bottom + ~50px button ≈ 80px.
      */
-    #tryloom-popup-wrap .tryloom-popup__step--2 {
-        bottom: 80px;
-        /* carve space for fixed actions bar */
-    }
+
 }
 
 #tryloom-popup-wrap .tryloom-popup__upload-section h4,
@@ -903,7 +904,6 @@ body.tryloom-scroll-lock {
     min-height: 0;
     height: 0;
     /* forces flex child to not auto-size beyond its flex allocation */
-    width: 100%;
     max-width: 600px;
     padding: 15px;
     background: var(--tryloom-result-bg);

@@ -290,6 +290,7 @@ class Tryloom_Frontend
 	 */
 	public function add_try_on_popup()
 	{
+
 		// Check if try-on is enabled.
 		if ('yes' !== get_option('tryloom_enabled', 'yes')) {
 			return;
@@ -879,24 +880,24 @@ class Tryloom_Frontend
 			$turnstile_enabled = get_option('tryloom_turnstile_enabled', 'no');
 			if ('yes' === $turnstile_enabled) {
 				$secret_key = get_option('tryloom_turnstile_secret_key', '');
-				
+
 				// Extract the hyphenated payload
 				$token = isset($_POST['cf-turnstile-response']) ? sanitize_text_field(wp_unslash($_POST['cf-turnstile-response'])) : '';
-				
+
 				if (empty($token)) {
 					wp_send_json_error(array('message' => __('Security check failed. Please refresh and try again. (Missing Turnstile Token)', 'tryloom'), 'error_code' => 'turnstile_missing'));
 				}
-				
+
 				// Verify token with Cloudflare
 				$verify_response = wp_remote_post('https://challenges.cloudflare.com/turnstile/v0/siteverify', array(
 					'body' => array(
-						'secret'   => $secret_key,
+						'secret' => $secret_key,
 						'response' => $token,
 						// Optional: Pass remote IP if available via $_SERVER['REMOTE_ADDR']
 					),
 					'timeout' => 10,
 				));
-				
+
 				if (is_wp_error($verify_response)) {
 					// Fallback open if Cloudflare is down to avoid completely blocking sales? 
 					// For security products, standard is usually fail-closed, but let's log it.
@@ -905,10 +906,10 @@ class Tryloom_Frontend
 					}
 					wp_send_json_error(array('message' => __('Security verification service is temporarily unreachable.', 'tryloom')));
 				}
-				
+
 				$body = wp_remote_retrieve_body($verify_response);
 				$data = json_decode($body);
-				
+
 				if (!$data || !isset($data->success) || !$data->success) {
 					// Add specific logging for failure to help merchants
 					if ('yes' === get_option('tryloom_enable_logging', 'no')) {
@@ -994,7 +995,7 @@ class Tryloom_Frontend
 					case 'hour':
 						// E.g. "2026-02-20 10" (resets at the top of each hour)
 						$current_period_identifier = wp_date('Y-m-d H');
-						$dt->modify('+1 hour')->setTime((int)$dt->format('H'), 0, 0);
+						$dt->modify('+1 hour')->setTime((int) $dt->format('H'), 0, 0);
 						break;
 					case 'day':
 						// E.g. "2026-02-20" (resets at local midnight)
@@ -1013,7 +1014,7 @@ class Tryloom_Frontend
 						break;
 					default:
 						$current_period_identifier = wp_date('Y-m-d H');
-						$dt->modify('+1 hour')->setTime((int)$dt->format('H'), 0, 0);
+						$dt->modify('+1 hour')->setTime((int) $dt->format('H'), 0, 0);
 				}
 				$reset_time_iso = $dt->format('c');
 

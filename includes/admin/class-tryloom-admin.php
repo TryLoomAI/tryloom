@@ -868,7 +868,7 @@ class Tryloom_Admin
 		<p class="description">
 			<?php esc_html_e('Your Cloudflare Turnstile Secret Key.', 'tryloom'); ?><br>
 			<strong><?php esc_html_e('Tip:', 'tryloom'); ?></strong>
-			<?php esc_html_e('When creating your Turnstile widget in Cloudflare, we highly recommend choosing "Managed" mode so it doesn\'t interrupt your real shoppers.', 'tryloom'); ?><br>
+			<?php esc_html_e('When creating your Turnstile widget in Cloudflare, we highly recommend choosing "Invisible" mode so it doesn\'t interrupt your real shoppers.', 'tryloom'); ?><br>
 			<?php
 			echo wp_kses_post(
 				__('Don\'t have these keys? <a href="https://gettryloom.com/cloudflare-turnstile-setup-for-woocommerce/" target="_blank">Click here to read our 3-minute guide</a> on how to get your free Cloudflare Turnstile keys.', 'tryloom')

@@ -397,6 +397,10 @@ body.tryloom-scroll-lock {
 
 /* Single Column Layout with Fixed Buttons */
 @media (max-width: 768px) {
+    #tryloom-popup-wrap .tryloom-popup__result-image-wrapper img.tryloom-popup__result-image {
+        box-shadow: none !important;
+    }
+
     #tryloom-popup-wrap .tryloom-popup__content {
         width: 95%;
         max-height: 90vh;

@@ -38,7 +38,7 @@ class Tryloom_API
 		// External Service: TryLoom Cloud API
 		// Used for: AI Image Generation and License Validation
 		// Terms: https://gettryloom.com/terms-and-conditions/
-		$this->api_endpoint = 'https://fashiontryon-vqmfnpmz4q-uc.a.run.app';
+		$this->api_endpoint = defined('TRYLOOM_API_ENDPOINT') ? TRYLOOM_API_ENDPOINT : 'https://fashiontryon-vqmfnpmz4q-uc.a.run.app';
 
 		// Get platform key - prefer paid key, fallback to free key
 		$paid_key = get_option('tryloom_platform_key', '');
@@ -529,7 +529,8 @@ class Tryloom_API
 		// External Service: TryLoom Status API
 		// Used for: Real-time Service Health Checks and Usage Tracking
 		// Terms: https://gettryloom.com/terms-and-conditions/
-		$response = wp_remote_post('https://status-vqmfnpmz4q-uc.a.run.app/status', $args);
+		$status_endpoint = defined('TRYLOOM_STATUS_ENDPOINT') ? TRYLOOM_STATUS_ENDPOINT : 'https://status-vqmfnpmz4q-uc.a.run.app/status';
+		$response = wp_remote_post($status_endpoint, $args);
 
 		if (is_wp_error($response)) {
 			// Log error but don't stop future checks, just wait for next cron

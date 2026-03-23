@@ -379,7 +379,8 @@ class Tryloom_Admin
 					<?php esc_html_e('Auto', 'tryloom'); ?>
 					<span class="tryloom-admin__tooltip-content">
 						<?php esc_html_e('Smart AI automatically selects the best mode for customer photo to ensure quality and usability.', 'tryloom'); ?>
-						<br><a href="https://gettryloom.com/studio-vs-try-on-mode-guide/"
+						<br><a
+							href="https://gettryloom.com/docs/general-faq/what-is-the-difference-between-try-on-mode-and-studio-mode/"
 							target="_blank"><?php esc_html_e('Learn more', 'tryloom'); ?></a>
 					</span>
 				</span>
@@ -391,7 +392,8 @@ class Tryloom_Admin
 					<?php esc_html_e('Try-On', 'tryloom'); ?>
 					<span class="tryloom-admin__tooltip-content">
 						<?php esc_html_e('Maximum realism. Preserves exact facial features, fabric textures and background.', 'tryloom'); ?>
-						<br><a href="https://gettryloom.com/studio-vs-try-on-mode-guide/"
+						<br><a
+							href="https://gettryloom.com/docs/general-faq/what-is-the-difference-between-try-on-mode-and-studio-mode/"
 							target="_blank"><?php esc_html_e('Learn more', 'tryloom'); ?></a>
 					</span>
 				</span>
@@ -403,7 +405,8 @@ class Tryloom_Admin
 					<?php esc_html_e('Studio', 'tryloom'); ?>
 					<span class="tryloom-admin__tooltip-content">
 						<?php esc_html_e('Fastest option. Creates high-quality, studio-lit images with professional lighting and background.', 'tryloom'); ?>
-						<br><a href="https://gettryloom.com/studio-vs-try-on-mode-guide/"
+						<br><a
+							href="https://gettryloom.com/docs/general-faq/what-is-the-difference-between-try-on-mode-and-studio-mode/"
 							target="_blank"><?php esc_html_e('Learn more', 'tryloom'); ?></a>
 					</span>
 				</span>

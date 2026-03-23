@@ -159,6 +159,21 @@ class Tryloom_API
 			}
 		}
 
+		// Fix SSRF & Local Dev Loopback
+		$is_local_url = ( strpos( $url, content_url() ) !== false || strpos( $url, site_url() ) !== false );
+		if ( $is_local_url ) {
+			// It belongs to this site but local file resolution failed.
+			// Fails gracefully instead of executing a slow, likely-blocked wp_remote_get loopback.
+			return new WP_Error('image_fetch_error', __('Could not resolve local image path.', 'tryloom'));
+		} else {
+			// External URL, enforce SSRF protection to block internal IPs.
+			$safe_url = wp_http_validate_url( $url );
+			if ( false === $safe_url ) {
+				return new WP_Error('image_fetch_error', __('Invalid or unauthorized external URL.', 'tryloom'));
+			}
+			$url = $safe_url;
+		}
+
 		// Fallback to HTTP API
 		// Disable SSL verification for compatibility and increase timeout
 		$args = array(
@@ -442,6 +457,8 @@ class Tryloom_API
 
 			// Get the product or variation image.
 			$product_image_url = '';
+			$variation = null;
+			$product = null;
 			if ($variation_id > 0) {
 				$variation = wc_get_product($variation_id);
 				if ($variation) {
@@ -465,7 +482,7 @@ class Tryloom_API
 			$product_title = '';
 			$product_description = '';
 			$product_variation = '';
-			if ($variation) {
+			if ( ! empty( $variation ) ) {
 				$product_title = $variation->get_name();
 				$product_variation = wc_get_formatted_variation($variation, true, true, false);
 				$parent = wc_get_product($variation->get_parent_id());

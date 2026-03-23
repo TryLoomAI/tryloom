@@ -28,10 +28,23 @@ if ('yes' === get_option('tryloom_remove_data_on_delete', 'no')) {
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
     $wpdb->query("DELETE FROM {$wpdb->options} WHERE option_name LIKE 'tryloom_%'");
 
+    // Delete WordPress transients for TryLoom
+    // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+    $wpdb->query("DELETE FROM {$wpdb->options} WHERE option_name LIKE '\_transient\_tryloom\_%' OR option_name LIKE '\_transient\_timeout\_tryloom\_%'");
+
     // 3. Delete User Meta
     // Delete 'tryloom_last_login' from usermeta
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
     $wpdb->query("DELETE FROM {$wpdb->usermeta} WHERE meta_key LIKE 'tryloom_%'");
+
+    // 4. Delete tryloom attachments to prevent media library ghosts
+    // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+    $attachments = $wpdb->get_col("SELECT post_id FROM {$wpdb->postmeta} WHERE meta_key = '_tryloom_image'");
+    if ( ! empty( $attachments ) ) {
+        foreach ( $attachments as $attachment_id ) {
+            wp_delete_attachment( $attachment_id, true );
+        }
+    }
 
     // 4. Clean up custom directory
     // Note: We do not delete the physical files in /uploads/tryloom/ to avoid
@@ -48,7 +61,9 @@ if ('yes' === get_option('tryloom_remove_data_on_delete', 'no')) {
             require_once ABSPATH . 'wp-admin/includes/file.php';
             WP_Filesystem();
         }
-        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_rmdir
-        $wp_filesystem->delete($tryloom_dir, true);
+        if (is_object($wp_filesystem)) {
+            // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_rmdir
+            $wp_filesystem->delete($tryloom_dir, true);
+        }
     }
 }

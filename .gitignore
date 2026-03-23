@@ -4,3 +4,4 @@
 .env
 /node_modules
 /Plugin Architecture and Context
+/!test-environment

@@ -374,7 +374,9 @@ body.tryloom-scroll-lock {
  * filling exactly the same space as the other steps.
  */
 #tryloom-popup-wrap .tryloom-popup__step--2 {
-    inset: 0;
+    position: absolute;
+    inset: 30px;
+    width: auto;
     flex-direction: column;
     flex-wrap: nowrap;
     min-height: 0;
@@ -438,6 +440,7 @@ body.tryloom-scroll-lock {
         gap: 20px;
         min-height: 0;
         height: auto;
+        position: static;
     }
 
 
@@ -525,6 +528,9 @@ body.tryloom-scroll-lock {
      * Actions bar: padding 15px top+bottom + ~50px button ≈ 80px.
      */
     #tryloom-popup-wrap .tryloom-popup__step--2 {
+        top: 20px;
+        left: 20px;
+        right: 20px;
         bottom: 80px;
         /* carve space for fixed actions bar */
     }

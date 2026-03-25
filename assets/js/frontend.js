@@ -919,6 +919,19 @@
 		},
 
 		/**
+		 * Simple HTML escaping for variables injected into the DOM.
+		 */
+		escapeHTML: function (str) {
+			if (!str) return '';
+			return String(str)
+				.replace(/&/g, '&amp;')
+				.replace(/</g, '&lt;')
+				.replace(/>/g, '&gt;')
+				.replace(/"/g, '&quot;')
+				.replace(/'/g, '&#039;');
+		},
+
+		/**
 		 * Load variations.
 		 *
 		 * @param {number} productId Product ID.
@@ -965,12 +978,16 @@
 							var variationTitle = (variation.image && variation.image.title) ? variation.image.title : variationName;
 							var variationAttributes = variation.attributes ? JSON.stringify(variation.attributes).replace(/"/g, '&quot;') : '{}';
 
+							// Escape string inputs from WooCommerce to prevent DOM XSS
+							var safeName = self.escapeHTML(variationName);
+							var safeTitle = self.escapeHTML(variationTitle);
+
 							var variationHtml = '<div class="tryloom-popup__variation" data-variation-id="' + variationId + '" data-product-id="' + productId + '" data-attributes="' + variationAttributes + '">' +
 								'<div class="tryloom-popup__variation-image">' +
-								'<img src="' + variationImage + '" alt="' + variationTitle + '" />' +
+								'<img src="' + variationImage + '" alt="' + safeTitle + '" />' +
 								'</div>' +
 								'<div class="tryloom-popup__variation-details">' +
-								'<div class="tryloom-popup__variation-name">' + variationName + '</div>' +
+								'<div class="tryloom-popup__variation-name">' + safeName + '</div>' +
 								'<div class="tryloom-popup__variation-price">' + (variation.price_html || '') + '</div>' +
 								'</div>' +
 								'</div>';
@@ -1004,12 +1021,15 @@
 									var productImage = product.image || '';
 									var productPriceHtml = product.price_html || '';
 
+									// Escape string inputs from WooCommerce to prevent DOM XSS
+									var safeName = self.escapeHTML(productName);
+
 									var productHtml = '<div class="tryloom-popup__variation selected" data-variation-id="0" data-product-id="' + productId + '">' +
 										'<div class="tryloom-popup__variation-image">' +
-										'<img src="' + productImage + '" alt="' + productName + '" />' +
+										'<img src="' + productImage + '" alt="' + safeName + '" />' +
 										'</div>' +
 										'<div class="tryloom-popup__variation-details">' +
-										'<div class="tryloom-popup__variation-name">' + productName + '</div>' +
+										'<div class="tryloom-popup__variation-name">' + safeName + '</div>' +
 										'<div class="tryloom-popup__variation-price">' + productPriceHtml + '</div>' +
 										'</div>' +
 										'</div>';

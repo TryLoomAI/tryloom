@@ -1193,8 +1193,7 @@ class Tryloom_Admin
 		$subscription_ended = get_option('tryloom_subscription_ended', 'no');
 		if ('yes' === $subscription_ended) {
 			echo '<div class="notice notice-error is-dismissible"><p>' .
-				// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- HTML allowed
-				__('Your TryLoom subscription has expired or payment failed.<br><strong>Your customers cannot see the Virtual Try-On button.</strong><br><a href="https://gettryloom.com/my-account/">Click here to renew now</a> to restore service immediately.', 'tryloom') .
+				wp_kses_post( __('Your TryLoom subscription has expired or payment failed.<br><strong>Your customers cannot see the Virtual Try-On button.</strong><br><a href="https://gettryloom.com/my-account/">Click here to renew now</a> to restore service immediately.', 'tryloom') ) .
 				'</p></div>';
 		}
 

@@ -53,7 +53,7 @@ class Tryloom_Frontend
 		add_action('wp_ajax_tryloom_set_default_photo', array($this, 'ajax_set_default_photo'));
 		add_action('wp_ajax_tryloom_delete_history', array($this, 'ajax_delete_history'));
 		add_action('wp_ajax_tryloom_delete_all_history', array($this, 'ajax_delete_all_history'));
-		add_action('wp_ajax_tryloom_upload_account_photo', array($this, 'ajax_upload_account_photo'));
+		// Note: tryloom_upload_account_photo AJAX action removed — My Account page uploader feature is no longer part of this plugin.
 		add_action('wp_ajax_tryloom_get_variations', array($this, 'ajax_get_variations'));
 		add_action('wp_ajax_nopriv_tryloom_get_variations', array($this, 'ajax_get_variations'));
 		add_action('wp_ajax_tryloom_get_product', array($this, 'ajax_get_product'));
@@ -718,6 +718,11 @@ class Tryloom_Frontend
 			wp_send_json_error(array('message' => __('Try-on feature is disabled.', 'tryloom')));
 		}
 
+		// Check nonce (CSRF protection).
+		if (!check_ajax_referer('tryloom', 'nonce', false)) {
+			wp_send_json_error(array('message' => __('Invalid nonce.', 'tryloom')));
+		}
+
 		// Check if user role is allowed.
 		if (!$this->is_user_allowed()) {
 			wp_send_json_error(array('message' => __('You do not have permission to use this feature.', 'tryloom')));
@@ -984,6 +989,20 @@ class Tryloom_Frontend
 			$time_period = get_option('tryloom_time_period', 'hour');
 
 			if ($generation_limit > 0) {
+				// --- Race condition lock: one generation at a time per user ---
+				$lock_key = 'tryloom_gen_lock_' . $user_id;
+				// set_transient returns false if the key already exists (WordPress 6.3+ supports this natively,
+				// but we use add_option-style logic via a non-expiring get+set check for wider compat).
+				// Using get_transient: if it exists, another request is in flight.
+				if (false !== get_transient($lock_key)) {
+					wp_send_json_error(array(
+						'message'    => __('A generation is already in progress. Please wait a moment.', 'tryloom'),
+						'error_code' => 'generation_in_progress',
+					));
+				}
+				// Acquire lock (10-second TTL covers the full API round-trip).
+				set_transient($lock_key, 1, 10);
+
 				// Get current usage from user meta
 				$usage_count = (int) get_user_meta($user_id, 'tryloom_usage_count', true);
 				$last_reset = get_user_meta($user_id, 'tryloom_last_reset_date', true);
@@ -1028,9 +1047,10 @@ class Tryloom_Frontend
 				}
 
 				if ($usage_count >= $generation_limit) {
+					delete_transient($lock_key); // Release lock before early return.
 					$upsell_url = get_option('tryloom_limit_upsell_url', '');
 					wp_send_json_error(array(
-						'message' => __('You have reached your generation limit.', 'tryloom'),
+						'message'    => __('You have reached your generation limit.', 'tryloom'),
 						'error_code' => 'limit_exceeded',
 						'reset_time' => $reset_time_iso,
 						'upsell_url' => $upsell_url
@@ -1580,141 +1600,7 @@ class Tryloom_Frontend
 		wp_send_json_success();
 	}
 
-	/**
-	 * Handle AJAX request to upload account photo.
-	 */
-	public function ajax_upload_account_photo()
-	{
-		// Check if try-on is enabled.
-		if ('yes' !== get_option('tryloom_enabled', 'yes')) {
-			wp_send_json_error(array('message' => __('Try-on feature is disabled.', 'tryloom')));
-		}
-
-		// Check nonce.
-		if (!check_ajax_referer('tryloom', 'nonce', false)) {
-			wp_send_json_error(array('message' => __('Invalid nonce.', 'tryloom')));
-		}
-
-		// Check if user role is allowed.
-		if (!$this->is_user_allowed()) {
-			wp_send_json_error(array('message' => __('You do not have permission to use this feature.', 'tryloom')));
-		}
-
-		// Check if user is logged in.
-		if (!is_user_logged_in()) {
-			wp_send_json_error(array('message' => __('You must be logged in.', 'tryloom')));
-		}
-
-		// Check if file is uploaded.
-		if (!isset($_FILES['image'])) {
-			wp_send_json_error(array('message' => __('No image file uploaded.', 'tryloom')));
-		}
-
-		$set_as_default = isset($_POST['set_as_default']) && 'yes' === $_POST['set_as_default'];
-		$user_id = get_current_user_id();
-
-		// Handle file upload.
-		if (!function_exists('wp_handle_upload')) {
-			require_once ABSPATH . 'wp-admin/includes/file.php';
-		}
-
-		$upload_overrides = array('test_form' => false);
-		$file = wp_handle_upload($_FILES['image'], $upload_overrides);
-
-		if (isset($file['error'])) {
-			wp_send_json_error(array('message' => $file['error']));
-		}
-
-		$file_url = $file['url'];
-
-		// Save to media library.
-		$attachment = array(
-			'post_mime_type' => $file['type'],
-			'post_title' => isset($_FILES['image']['name']) ? sanitize_file_name($_FILES['image']['name']) : '',
-			'post_content' => '',
-			'post_status' => 'inherit',
-		);
-
-		$attachment_id = wp_insert_attachment($attachment, $file['file']);
-
-		if (!is_wp_error($attachment_id)) {
-			// Mark this as a try-on image
-			update_post_meta($attachment_id, '_tryloom_image', 'yes');
-
-			require_once ABSPATH . 'wp-admin/includes/image.php';
-			$attachment_data = wp_generate_attachment_metadata($attachment_id, $file['file']);
-			wp_update_attachment_metadata($attachment_id, $attachment_data);
-		}
-
-		// Save to database.
-		global $wpdb;
-		$table_name = $wpdb->prefix . 'tryloom_user_photos';
-		$old_attachment_id = null;
-
-		// If setting as default, delete old permanent default and unset all defaults.
-		if ($set_as_default) {
-			// Get old permanent default to delete it.
-			// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared,WordPress.DB.PreparedSQL.InterpolatedNotPrepared,WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Table name sanitized with esc_sql()
-			$old_permanent_default = $wpdb->get_row(
-				$wpdb->prepare(
-					'SELECT * FROM ' . esc_sql($table_name) . ' WHERE user_id = %d AND is_default = 1 AND manually_set_default = 1 LIMIT 1',
-					$user_id
-				)
-			);
-
-			if ($old_permanent_default) {
-				$old_attachment_id = $old_permanent_default->attachment_id;
-				// Delete old permanent default from database.
-				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Using $wpdb->delete() with prepared format strings
-				$wpdb->delete(
-					$table_name,
-					array('id' => $old_permanent_default->id),
-					array('%d')
-				);
-			}
-
-			// Unset all defaults.
-			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Using $wpdb->update() with prepared format strings
-			$wpdb->update(
-				$table_name,
-				array(
-					'is_default' => 0,
-					'manually_set_default' => 0,
-				),
-				array('user_id' => $user_id),
-				array('%d', '%d'),
-				array('%d')
-			);
-
-			// Delete old attachment from media library.
-			if ($old_attachment_id) {
-				wp_delete_attachment($old_attachment_id, true);
-			}
-		}
-
-		// Insert photo.
-		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery,WordPress.DB.DirectDatabaseQuery.NoCaching -- Using $wpdb->insert() with prepared format strings
-		$wpdb->insert(
-			$table_name,
-			array(
-				'user_id' => $user_id,
-				'attachment_id' => $attachment_id,
-				'image_url' => $file_url,
-				'is_default' => $set_as_default ? 1 : 0,
-				'manually_set_default' => $set_as_default ? 1 : 0,
-				'created_at' => current_time('mysql'),
-				'last_used' => current_time('mysql'),
-			),
-			array('%d', '%d', '%s', '%d', '%d', '%s', '%s')
-		);
-
-		wp_send_json_success(
-			array(
-				'photo_id' => $wpdb->insert_id,
-				'image_url' => $file_url,
-			)
-		);
-	}
+	// ajax_upload_account_photo() was removed — My Account page uploader is no longer a feature of this plugin.
 
 	/**
 	 * Handle AJAX request to get product variations.

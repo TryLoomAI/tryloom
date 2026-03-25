@@ -874,7 +874,7 @@ class Tryloom_Admin
 			<?php esc_html_e('When creating your Turnstile widget in Cloudflare, we highly recommend choosing "Invisible" mode so it doesn\'t interrupt your real shoppers.', 'tryloom'); ?><br>
 			<?php
 			echo wp_kses_post(
-				__('Don\'t have these keys? <a href="https://gettryloom.com/cloudflare-turnstile-setup-for-woocommerce/" target="_blank">Click here to read our 3-minute guide</a> on how to get your free Cloudflare Turnstile keys.', 'tryloom')
+				__('Don\'t have these keys? <a href="https://gettryloom.com/docs/getting-started-settings/how-to-setup-cloudflare-turnstile-free-bot-protection/" target="_blank">Click here to read our 3-minute guide</a> on how to get your free Cloudflare Turnstile keys.', 'tryloom')
 			);
 			?>
 		</p>
@@ -1193,7 +1193,7 @@ class Tryloom_Admin
 		$subscription_ended = get_option('tryloom_subscription_ended', 'no');
 		if ('yes' === $subscription_ended) {
 			echo '<div class="notice notice-error is-dismissible"><p>' .
-				wp_kses_post( __('Your TryLoom subscription has expired or payment failed.<br><strong>Your customers cannot see the Virtual Try-On button.</strong><br><a href="https://gettryloom.com/my-account/">Click here to renew now</a> to restore service immediately.', 'tryloom') ) .
+				wp_kses_post(__('Your TryLoom subscription has expired or payment failed.<br><strong>Your customers cannot see the Virtual Try-On button.</strong><br><a href="https://gettryloom.com/my-account/">Click here to renew now</a> to restore service immediately.', 'tryloom')) .
 				'</p></div>';
 		}
 

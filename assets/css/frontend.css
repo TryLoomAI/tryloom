@@ -505,7 +505,8 @@ body.tryloom-scroll-lock {
     }
 
     #tryloom-popup-wrap .tryloom-popup__result-image {
-        padding: 15px;
+        padding: 0px;
+        border-radius: 0px !important;
     }
 
     #tryloom-popup-wrap .tryloom-popup__image-actions {
@@ -1639,6 +1640,7 @@ body.tryloom-scroll-lock {
 /* Result image in popup also clickable for lightbox */
 #tryloom-popup-wrap .tryloom-popup__result-image-standalone {
     cursor: pointer;
+
 }
 
 /* Removed redundant 'Undo' button styles and Dead Code */

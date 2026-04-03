@@ -198,3 +198,5 @@ if (!isset($default_photo_url)) {
                 </div>
             </div>
         </div>
+    </div>
+</div>

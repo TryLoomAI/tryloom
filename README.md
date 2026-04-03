@@ -3,7 +3,7 @@ Contributors: ToolTeek, dinethchamuditha
 Tags: woocommerce, virtual try-on, product visualization, e-commerce, fashion
 Requires at least: 5.6
 Tested up to: 6.9
-Stable tag: 1.5.0
+Stable tag: 1.5.1
 Requires PHP: 7.2
 WC requires at least: 5.0
 WC tested up to: 10.4
@@ -95,6 +95,21 @@ Yes. Theme color, primary color, and custom CSS options are available in setting
 6. **Dashboard Widget** – Usage statistics overview.
 
 == Changelog ==
+
+= 1.5.2 = 
+
+* Fix: Added missing html close tag
+
+= 1.5.1 =
+
+* Security: Patched a critical Server-Side Request Forgery (SSRF) vulnerability in the image fetch API to prevent internal network scanning.
+* Security: Secured the My Account and Try On popup upload endpoints against Cross-Site Request Forgery (CSRF) and restricted file types to prevent unauthorized script uploads.
+* Security: Implemented a strict transient locking mechanism to fix a race condition that allowed users to bypass generation quotas.
+* Security: Hardened admin dashboard notices and frontend UI rendering to prevent potential Cross-Site Scripting (XSS).
+* Fix: Overhauled the plugin uninstaller to properly sweep orphaned transient data and safely delete media attachments without leaving broken "ghost" images in the WordPress library.
+* Fix: Resolved a storage leak where guest users uploading photos but abandoning the generation process would leave unrecorded files on the server.
+* Fix: Added safe fallback logic to eliminate a PHP undefined variable notice when processing simple, non-variable WooCommerce products.
+* Fix: Implemented a safe loopback check to prevent the plugin from executing slow HTTP requests when attempting to load local staging environment files.
 
 = 1.5.0 =
 
@@ -198,6 +213,12 @@ Yes. Theme color, primary color, and custom CSS options are available in setting
 * Initial release: Core virtual try-on functionality, admin settings, user account integration, and API support.
 
 == Upgrade Notice ==
+
+=1.5.2=
+Added missing html close tag
+
+= 1.5.1 =
+Critical Security Update: Patches multiple high-severity vulnerabilities including unauthorized file uploads, server-side request forgery (SSRF), and usage quota race conditions. Also includes major improvements to database cleanup during uninstallation. Immediate update is highly recommended to ensure store security and optimal server performance.
 
 = 1.5.0 =
 Feature & Security Update: Version 1.5.0 introduces Cloudflare Turnstile for advanced bot protection and hardens role-based security access. We have also reorganized the admin settings into an easy-to-use tabbed interface. We recommend reviewing your settings after updating to configure the new Turnstile bot protection.

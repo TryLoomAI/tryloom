@@ -2,11 +2,11 @@
 Contributors: ToolTeek, dinethchamuditha
 Tags: woocommerce, virtual try-on, product visualization, e-commerce, fashion
 Requires at least: 5.6
-Tested up to: 6.9
-Stable tag: 1.5.1
+Tested up to: 7.0
+Stable tag: 1.5.4
 Requires PHP: 7.2
 WC requires at least: 5.0
-WC tested up to: 10.4
+WC tested up to: 10.9
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -96,12 +96,25 @@ Yes. Theme color, primary color, and custom CSS options are available in setting
 
 == Changelog ==
 
-= 1.5.2 = 
+= 1.5.4 =
+* Fix: Resolved a generation crash caused by missing variation images by adding a smart fallback to the main product's featured image.
+* Fix: Completely rebuilt local file path resolution to correctly identify image files behind reverse proxies, load balancers, and CDNs (e.g., Cloudflare), eliminating the "Invalid or unauthorized external URL" error.
+* Fix: Bypassed native WP_Filesystem limitations in local development environments to prevent silent read failures and FTP credential prompts.
+* Improvement: Enhanced error handling in the image fetch API to precisely identify which image (User Photo vs. Product Image) failed during a generation request.
 
+= 1.5.4 =
+* Fixed: Resolved a critical bug where testing a product variation that lacked a specific image would cause an "Invalid or unauthorized external URL" or "Empty URL" crash. The plugin now smartly falls back to the main product image.
+* Fixed: Resolved a false-positive security block that occurred on sites using CDNs, Cloudflare, or local development environments. The plugin now reliably locates and reads uploaded photos regardless of SSL proxy mismatches or custom port configurations.
+
+=1.5.3=
+* Improved: Streamlined the initial setup workflow to help new users connect their API keys faster.
+* Added: Smart dashboard routing—the plugin now automatically directs you to the exact setup or renewal page you need, saving you clicks.
+* Fixed: Minor UI and workflow improvements to make the onboarding experience seamless.
+
+= 1.5.2 = 
 * Fix: Added missing html close tag
 
 = 1.5.1 =
-
 * Security: Patched a critical Server-Side Request Forgery (SSRF) vulnerability in the image fetch API to prevent internal network scanning.
 * Security: Secured the My Account and Try On popup upload endpoints against Cross-Site Request Forgery (CSRF) and restricted file types to prevent unauthorized script uploads.
 * Security: Implemented a strict transient locking mechanism to fix a race condition that allowed users to bypass generation quotas.
@@ -112,7 +125,6 @@ Yes. Theme color, primary color, and custom CSS options are available in setting
 * Fix: Implemented a safe loopback check to prevent the plugin from executing slow HTTP requests when attempting to load local staging environment files.
 
 = 1.5.0 =
-
 * New: Integrated Cloudflare Turnstile for bot protection and spam prevention.
 * New: Added dynamic Privacy Policy note suggestions tailored to your specific image storage configurations.
 * Enhancement: Completely reorganized the admin settings menu into a clean, tabbed interface for a significantly better user experience.
@@ -120,7 +132,6 @@ Yes. Theme color, primary color, and custom CSS options are available in setting
 * Security: Hardened role-based access restrictions to improve overall site security.
 
 = 1.4.0 =
-
 * Performance: Overhauled the generation limit engine to use lightweight user metadata instead of heavy database queries, making load times lightning fast for high-volume stores.
 * Performance: Completely removed heavy Font Awesome dependencies. All UI icons are now ultra-lightweight, zero-dependency inline SVGs to significantly boost PageSpeed scores.
 * Performance: Rebuilt the variation caching engine to prevent wp_options database bloat and strictly isolate price caching, eliminating potential wholesale pricing leaks.
@@ -213,6 +224,12 @@ Yes. Theme color, primary color, and custom CSS options are available in setting
 * Initial release: Core virtual try-on functionality, admin settings, user account integration, and API support.
 
 == Upgrade Notice ==
+
+= 1.5.4 =
+Critical Bug Fix: Eliminates the "Invalid or unauthorized external URL" error for stores using Cloudflare, CDNs, or custom staging environments. Also fixes generation crashes on product variations missing specific images. Highly recommended for all users.
+
+=1.5.3=
+Streamlined the TryLoom setup process. This update is optional for existing users.
 
 =1.5.2=
 Added missing html close tag

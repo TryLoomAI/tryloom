@@ -77,9 +77,9 @@ class Tryloom_API
 		return trailingslashit(site_url('/')) . ltrim($url, '/');
 	}
 
-	/**
+/**
 	 * Attempt to resolve a local filesystem path from a given URL.
-	 * Supports protected try-on URLs, attachment URLs, and same-host URLs.
+	 * Works across all live servers and local development environments (XAMPP, Local, Docker, etc.).
 	 *
 	 * @param string $url
 	 * @return string Empty when not resolvable, or absolute file path when found
@@ -92,11 +92,7 @@ class Tryloom_API
 
 		$url = $this->make_absolute_url($url);
 
-		// 1) Normalize URLs (remove scheme) for comparison
-		$url_no_scheme = preg_replace('/^https?:/', '', $url);
-		$url_no_scheme = strtok($url_no_scheme, '?'); // Remove query string
-
-		// 2) Attachment URL -> attached file path
+		// 1) Media Library attachment lookup
 		$attachment_id = attachment_url_to_postid($url);
 		if ($attachment_id) {
 			$file_path = get_attached_file($attachment_id);
@@ -105,17 +101,32 @@ class Tryloom_API
 			}
 		}
 
-		// 4) Check against upload directory
-		$upload_dir = wp_upload_dir();
-		$base_url_no_scheme = preg_replace('/^https?:/', '', $upload_dir['baseurl']);
+		// 2) Extract path portion of URL (strips domains, ports like :8080, and schemes)
+		$url_path = wp_parse_url($url, PHP_URL_PATH);
+		if (!$url_path) {
+			return '';
+		}
 
-		if (strpos($url_no_scheme, $base_url_no_scheme) !== false) {
-			$relative_path = str_replace($base_url_no_scheme, '', $url_no_scheme);
-			$file_path = $upload_dir['basedir'] . $relative_path;
-			// Fix potential double slashes
-			$file_path = str_replace('//', '/', $file_path);
-			// Fix windows slashes if needed (though WP usually handles this)
-			$file_path = wp_normalize_path($file_path);
+		$upload_dir = wp_upload_dir();
+		$basedir = wp_normalize_path($upload_dir['basedir']);
+
+		// 3) Resolve path relative to the /uploads/ directory
+		$uploads_pos = strpos($url_path, '/uploads/');
+		if (false !== $uploads_pos) {
+			$relative_path = substr($url_path, $uploads_pos + strlen('/uploads/'));
+			$file_path = wp_normalize_path($basedir . '/' . $relative_path);
+
+			if (file_exists($file_path) && is_readable($file_path)) {
+				return $file_path;
+			}
+		}
+
+		// 4) Fallback: Resolve path relative to /wp-content/
+		$content_pos = strpos($url_path, '/wp-content/');
+		if (false !== $content_pos) {
+			$relative_path = substr($url_path, $content_pos + strlen('/wp-content/'));
+			$content_dir = wp_normalize_path(WP_CONTENT_DIR);
+			$file_path = wp_normalize_path($content_dir . '/' . $relative_path);
 
 			if (file_exists($file_path) && is_readable($file_path)) {
 				return $file_path;
@@ -125,51 +136,48 @@ class Tryloom_API
 		return '';
 	}
 
-	/**
+/**
 	 * Get base64 encoded image from URL.
 	 *
 	 * @param string $url Image URL.
 	 * @return string|WP_Error Base64 encoded string or WP_Error on failure.
 	 */
-	private function get_base64_from_url($url)
+
+	private function get_base64_from_url($url, $type = 'Image')
 	{
+		if (empty($url)) {
+			// Update the error message to print the type
+			return new WP_Error('image_fetch_error', sprintf(__('The %s URL is missing or empty.', 'tryloom'), $type));
+		}
+		
 		$url = $this->make_absolute_url($url);
 
 		// Prefer local filesystem when possible
 		$local_path = $this->resolve_local_file_from_url($url);
 
-		if ($local_path) {
-			// Validate that $local_path is actually a local file path (not a URL)
-			// Check if it's a valid file path and exists
-			if (file_exists($local_path) && is_file($local_path) && !filter_var($local_path, FILTER_VALIDATE_URL)) {
-				// FIX: Use WP_Filesystem instead of file_get_contents
-				global $wp_filesystem;
-				if (empty($wp_filesystem)) {
-					require_once ABSPATH . '/wp-admin/includes/file.php';
-					WP_Filesystem();
-				}
-
-				// Check if filesystem is ready
-				if ($wp_filesystem) {
-					$contents = $wp_filesystem->get_contents($local_path);
-					if (false !== $contents) {
-						return base64_encode($contents);
-					}
-				}
+		if ($local_path && file_exists($local_path) && is_readable($local_path)) {
+			// Use native file_get_contents for reading to bypass WP_Filesystem FTP credential issues on local/staging environments
+			$contents = @file_get_contents($local_path);
+			if (false !== $contents) {
+				return base64_encode($contents);
 			}
 		}
 
 		// Fix SSRF & Local Dev Loopback
-		$is_local_url = (strpos($url, content_url()) !== false || strpos($url, site_url()) !== false);
+		// Make the local check protocol-agnostic (ignores http vs https)
+		$url_no_scheme = preg_replace('/^https?:/', '', $url);
+		$site_no_scheme = preg_replace('/^https?:/', '', site_url());
+		
+		$is_local_url = (strpos($url_no_scheme, $site_no_scheme) !== false);
+		
 		if ($is_local_url) {
 			// It belongs to this site but local file resolution failed.
-			// Fails gracefully instead of executing a slow, likely-blocked wp_remote_get loopback.
-			return new WP_Error('image_fetch_error', __('Could not resolve local image path.', 'tryloom'));
+			return new WP_Error('image_fetch_error', __('Could not resolve local image path for: ', 'tryloom') . $url);
 		} else {
 			// External URL, enforce SSRF protection to block internal IPs.
 			$safe_url = wp_http_validate_url($url);
 			if (false === $safe_url) {
-				return new WP_Error('image_fetch_error', __('Invalid or unauthorized external URL.', 'tryloom'));
+				return new WP_Error('image_fetch_error', __('Invalid or unauthorized external URL: ', 'tryloom') . $url);
 			}
 			$url = $safe_url;
 		}
@@ -185,7 +193,6 @@ class Tryloom_API
 
 		if (is_wp_error($response)) {
 			if ('yes' === get_option('tryloom_enable_logging', 'no')) {
-				// phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
 				error_log('[TryLoom] Image Fetch WP_Error: ' . $response->get_error_message() . ' for URL: ' . $url);
 			}
 			return new WP_Error('image_fetch_error', __('Could not fetch image from URL.', 'tryloom') . ' ' . $response->get_error_message());
@@ -236,12 +243,14 @@ class Tryloom_API
 		}
 
 		// Get base64 encoded images.
-		$user_photo_base64 = $this->get_base64_from_url($data['user_photo_url']);
+		// Add 'User Photo' nametag
+		$user_photo_base64 = $this->get_base64_from_url($data['user_photo_url'], 'User Photo');
 		if (is_wp_error($user_photo_base64)) {
 			return $user_photo_base64;
 		}
 
-		$product_image_base64 = $this->get_base64_from_url($data['product_image_url']);
+		// Add 'Product Image' nametag
+		$product_image_base64 = $this->get_base64_from_url($data['product_image_url'], 'Product Image');
 		if (is_wp_error($product_image_base64)) {
 			return $product_image_base64;
 		}
@@ -263,7 +272,7 @@ class Tryloom_API
 			'user_photo' => $user_photo_base64,
 			'product_image' => $product_image_base64,
 			'store_domain' => wp_parse_url(site_url(), PHP_URL_HOST),
-			'plugin_version' => defined('TRYLOOM_VERSION') ? TRYLOOM_VERSION : '1.5.2',
+			'plugin_version' => defined('TRYLOOM_VERSION') ? TRYLOOM_VERSION : '3',
 			'method' => $try_on_method,
 			'instance_id' => $this->get_instance_id(),
 		);
@@ -457,25 +466,37 @@ class Tryloom_API
 
 			// Get the product or variation image.
 			$product_image_url = '';
-			$variation = null;
-			$product = null;
+			$image_id = 0;
+
+			// 1. Try to get the variation image first
 			if ($variation_id > 0) {
 				$variation = wc_get_product($variation_id);
 				if ($variation) {
 					$image_id = $variation->get_image_id();
-					if ($image_id) {
-						$product_image_url = wp_get_attachment_url($image_id);
-					}
 				}
-			} elseif ($product_id > 0) {
+			}
+
+			// 2. Fallback: If no variation image, ALWAYS try the main product image
+			if (empty($image_id) && $product_id > 0) {
 				$product = wc_get_product($product_id);
 				if ($product) {
 					$image_id = $product->get_image_id();
-					if ($image_id) {
-						$product_image_url = wp_get_attachment_url($image_id);
+				}
+			}
+
+			// 3. Convert ID to URL
+			if (!empty($image_id)) {
+				$product_image_url = wp_get_attachment_url($image_id);
+				
+				// Extra safety net for local environments where database paths might be wonky
+				if (empty($product_image_url)) {
+					$img_array = wp_get_attachment_image_src($image_id, 'full');
+					if (is_array($img_array) && !empty($img_array[0])) {
+						$product_image_url = $img_array[0];
 					}
 				}
 			}
+			
 			$product_image_url = $this->make_absolute_url($product_image_url);
 
 			// Build product meta to send along

@@ -1193,7 +1193,7 @@ class Tryloom_Admin
 		$subscription_ended = get_option('tryloom_subscription_ended', 'no');
 		if ('yes' === $subscription_ended) {
 			echo '<div class="notice notice-error is-dismissible"><p>' .
-				wp_kses_post(__('Your TryLoom subscription has expired or payment failed.<br><strong>Your customers cannot see the Virtual Try-On button.</strong><br><a href="https://gettryloom.com/my-account/" target="_blank" rel="noopener">Click here to renew now</a> to restore service immediately.', 'tryloom')) .
+				wp_kses_post(__('Your TryLoom subscription has expired or payment failed.<br><strong>Your customers cannot see the Virtual Try-On button.</strong><br><a href="https://gettryloom.com/my-account/?action=renew" target="_blank" rel="noopener">Click here to renew now</a> to restore service immediately.', 'tryloom')) .
 				'</p></div>';
 		}
 
@@ -1585,7 +1585,7 @@ class Tryloom_Admin
 						<div class="tryloom-admin__stat-card-body tryloom-admin__sub-flex">
 							<div class="tryloom-admin__header-actions tryloom-admin__sub-actions">
 								<?php if ($show_start_free_button): ?>
-									<a href="https://gettryloom.com/my-account/"
+									<a href="https://gettryloom.com/my-account/?action=setup"
 										class="button button-primary tryloom-admin__margin-right-10" target="_blank">
 										<?php esc_html_e('Start for Free', 'tryloom'); ?>
 									</a>
